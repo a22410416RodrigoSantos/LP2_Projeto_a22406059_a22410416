@@ -1,4 +1,4 @@
-package pt.ulusofona.lp2.thegreatjourney;
+package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import javax.swing.*;
 import java.util.ArrayList;
