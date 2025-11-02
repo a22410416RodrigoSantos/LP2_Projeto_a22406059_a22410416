@@ -17,5 +17,5 @@ public class Slot {
 
     public boolean isEnd() { return isEnd; }
     public void setEnd(boolean b) { this.isEnd = b; }
-    //ola vamos ver se isto funciona
+    //nnnnnnnn sybau
 }
