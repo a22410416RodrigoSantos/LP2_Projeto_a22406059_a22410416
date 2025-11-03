@@ -1,0 +1,7 @@
+{
+  "jogadores": [
+    {"ID": "101", "Nome": "Teste1", "Linguagens favoritas": "Python;Java", "Cor": "Green"},
+    {"ID": "102", "Nome": "Teste2", "Linguagens favoritas": "C;C++", "Cor": "Brown"}
+  ],
+  "tabuleiro": {"tamanho": 20, "posicoes_iniciais": [1, 1]}
+}
