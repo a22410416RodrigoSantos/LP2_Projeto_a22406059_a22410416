@@ -6,15 +6,12 @@ import java.util.HashMap;
 
 public class GameManager {
 
-    ArrayList<Programmer> players = new ArrayList<>();
+    private ArrayList<Programmer> players = new ArrayList<>();
     private ArrayList<Slot> slots = new ArrayList<>();
     private int boardSize = 0;
     private int currentPlayerIndex = 0;
     private int totalTurns = 0;
 
-    // =========================================================================
-    // 1. createInitialBoard – String[][], int
-    // =========================================================================
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
             return false;
@@ -25,7 +22,6 @@ public class GameManager {
         slots.clear();
         totalTurns = 0;
 
-        // Criar slots
         for (int i = 1; i <= worldSize; i++) {
             Slot slot = new Slot();
             slot.setNumber(i);
@@ -39,7 +35,6 @@ public class GameManager {
             slots.add(slot);
         }
 
-        // Processar jogadores
         for (String[] info : playerInfo) {
             if (info.length != 4) {
                 return false;
@@ -49,9 +44,13 @@ public class GameManager {
                 int id = Integer.parseInt(info[0].trim());
                 String name = info[1].trim();
                 String languages = info[2].trim();
-                String color = info[3].trim().toUpperCase();
+                String color = info[3].trim();
 
-                if (id <= 0) {
+                if (id <= 0 || name.isEmpty()) {
+                    return false;
+                }
+
+                if (!isValidColor(color)) {
                     return false;
                 }
 
@@ -61,18 +60,16 @@ public class GameManager {
                     }
                 }
 
-                if (name.isEmpty()) {
-                    return false;
-                }
-
-                if (!isValidColor(color)) {
-                    return false;
-                }
-
                 Programmer p = new Programmer();
                 p.setId(id);
                 p.setName(name);
-                p.setFavoriteLanguages(languages.isEmpty() ? new String[0] : languages.split(";"));
+
+                String[] langs = languages.split(";");
+                for (int i = 0; i < langs.length; i++) {
+                    langs[i] = langs[i].trim();
+                }
+                p.setFavoriteLanguages(langs);
+
                 p.setColor(color);
                 p.setPosition(1);
                 players.add(p);
@@ -86,7 +83,6 @@ public class GameManager {
             return false;
         }
 
-        // Ordenar por ID
         for (int i = 0; i < players.size() - 1; i++) {
             for (int j = i + 1; j < players.size(); j++) {
                 if (players.get(i).getId() > players.get(j).getId()) {
@@ -101,28 +97,22 @@ public class GameManager {
         return true;
     }
 
-    // =========================================================================
-    // CORES VÁLIDAS: PURPLE, BLUE, GREEN, BROWN
-    // =========================================================================
     private boolean isValidColor(String color) {
-        if (color.equals("PURPLE")) {
+        if (color.equals("Purple")) {
             return true;
         }
-        if (color.equals("BLUE")) {
+        if (color.equals("Blue")) {
             return true;
         }
-        if (color.equals("GREEN")) {
+        if (color.equals("Green")) {
             return true;
         }
-        if (color.equals("BROWN")) {
+        if (color.equals("Brown")) {
             return true;
         }
         return false;
     }
 
-    // =========================================================================
-    // 2. getImagePng
-    // =========================================================================
     public String getImagePng(int nrSquare) {
         if (nrSquare < 1 || nrSquare > boardSize) {
             return null;
@@ -133,9 +123,6 @@ public class GameManager {
         return "normal.png";
     }
 
-    // =========================================================================
-    // 3. getProgrammerInfo
-    // =========================================================================
     public String[] getProgrammerInfo(int id) {
         for (Programmer p : players) {
             if (p.getId() == id) {
@@ -158,15 +145,11 @@ public class GameManager {
         return null;
     }
 
-    // =========================================================================
-    // 4. getProgrammerInfoAsStr – ESTADO: "Em Jogo" ou "Derrotado"
-    // =========================================================================
     public String getProgrammerInfoAsStr(int id) {
         for (Programmer p : players) {
             if (p.getId() == id) {
                 String[] langs = p.getFavoriteLanguages().clone();
 
-                // Ordenar alfabeticamente
                 for (int i = 0; i < langs.length - 1; i++) {
                     for (int j = i + 1; j < langs.length; j++) {
                         if (langs[i].compareTo(langs[j]) > 0) {
@@ -185,10 +168,7 @@ public class GameManager {
                     }
                 }
 
-                String state = "Em Jogo";
-                if (p.getPosition() == boardSize) {
-                    state = "Derrotado"; // Não existe "Vencedor"
-                }
+                String state = p.getPosition() == boardSize ? "Derrotado" : "Em Jogo";
 
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
                         " | " + langStr + " | " + state;
@@ -197,9 +177,6 @@ public class GameManager {
         return null;
     }
 
-    // =========================================================================
-    // 5. getSlotInfo
-    // =========================================================================
     public String[] getSlotInfo(int position) {
         if (position < 1 || position > boardSize) {
             return null;
@@ -212,7 +189,6 @@ public class GameManager {
             }
         }
 
-        // Ordenar IDs
         for (int i = 0; i < ids.size() - 1; i++) {
             for (int j = i + 1; j < ids.size(); j++) {
                 if (ids.get(i) > ids.get(j)) {
@@ -234,9 +210,6 @@ public class GameManager {
         return new String[]{idStr};
     }
 
-    // =========================================================================
-    // 6. getCurrentPlayerID
-    // =========================================================================
     public int getCurrentPlayerID() {
         if (players.isEmpty()) {
             return -1;
@@ -244,9 +217,6 @@ public class GameManager {
         return players.get(currentPlayerIndex).getId();
     }
 
-    // =========================================================================
-    // 7. moveCurrentPlayer
-    // =========================================================================
     public boolean moveCurrentPlayer(int nrSpaces) {
         if (nrSpaces < 1 || nrSpaces > 6 || players.isEmpty()) {
             return false;
@@ -270,9 +240,6 @@ public class GameManager {
         return true;
     }
 
-    // =========================================================================
-    // 8. gameIsOver
-    // =========================================================================
     public boolean gameIsOver() {
         for (Programmer p : players) {
             if (p.getPosition() == boardSize) {
@@ -282,9 +249,6 @@ public class GameManager {
         return false;
     }
 
-    // =========================================================================
-    // 9. getGameResults
-    // =========================================================================
     public ArrayList<String> getGameResults() {
         ArrayList<String> result = new ArrayList<>();
         result.add("THE GREAT PROGRAMMING JOURNEY");
@@ -312,7 +276,6 @@ public class GameManager {
             }
         }
 
-        // Ordenar: posição descendente, depois nome ascendente
         for (int i = 0; i < remaining.size() - 1; i++) {
             for (int j = i + 1; j < remaining.size(); j++) {
                 Programmer a = remaining.get(i);
@@ -331,9 +294,6 @@ public class GameManager {
         return result;
     }
 
-    // =========================================================================
-    // 10. getAuthorsPanel
-    // =========================================================================
     public JPanel getAuthorsPanel() {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new java.awt.Dimension(300, 300));
@@ -341,12 +301,10 @@ public class GameManager {
         panel.add(new JLabel("Número: a22406059"));
         panel.add(new JLabel("Nome: Rodrigo Santos"));
         panel.add(new JLabel("Número: a22410416"));
+
         return panel;
     }
 
-    // =========================================================================
-    // 11. customizeBoard
-    // =========================================================================
     public HashMap<String, String> customizeBoard() {
         return new HashMap<>();
     }
