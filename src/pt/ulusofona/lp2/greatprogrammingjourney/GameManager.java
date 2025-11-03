@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class GameManager {
 
-    private ArrayList<Programmer> players = new ArrayList<>();
+    ArrayList<Programmer> players = new ArrayList<>();
     private ArrayList<Slot> slots = new ArrayList<>();
     private int boardSize = 0;
     private int currentPlayerIndex = 0;
@@ -97,7 +97,7 @@ public class GameManager {
         return true;
     }
 
-    private boolean isValidColor(String color) {
+    public boolean isValidColor(String color) {
         if (color.equals("Purple")) {
             return true;
         }
