@@ -97,7 +97,7 @@ public class GameManager {
         return true;
     }
 
-    public boolean isValidColor(String color) {
+    private boolean isValidColor(String color) {
         if (color.equals("Purple")) {
             return true;
         }
@@ -168,10 +168,8 @@ public class GameManager {
                     }
                 }
 
-                String state = p.getPosition() == boardSize ? "Derrotado" : "Em Jogo";
-
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
-                        " | " + langStr + " | " + state;
+                        " | " + langStr + " | Em Jogo";
             }
         }
         return null;
