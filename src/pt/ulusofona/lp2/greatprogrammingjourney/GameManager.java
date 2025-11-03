@@ -7,10 +7,10 @@ import java.util.HashMap;
 public class GameManager {
 
     ArrayList<Programmer> players = new ArrayList<>();
-    private ArrayList<Slot> slots = new ArrayList<>();
-    private int boardSize = 0;
-    private int currentPlayerIndex = 0;
-    private int totalTurns = 0;
+    ArrayList<Slot> slots = new ArrayList<>();
+    int boardSize = 0;
+    int currentPlayerIndex = 0;
+    int totalTurns = 0;
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
@@ -97,7 +97,7 @@ public class GameManager {
         return true;
     }
 
-    private boolean isValidColor(String color) {
+    public boolean isValidColor(String color) {
         if (color.equals("Purple")) {
             return true;
         }
@@ -168,8 +168,10 @@ public class GameManager {
                     }
                 }
 
+                String state = p.getPosition() == boardSize ? "Derrotado" : "Em Jogo";
+
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
-                        " | " + langStr + " | Em Jogo";
+                        " | " + langStr + " | " + state;
             }
         }
         return null;
@@ -295,11 +297,10 @@ public class GameManager {
     public JPanel getAuthorsPanel() {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new java.awt.Dimension(300, 300));
-        panel.add(new JLabel("Nome: Marwan Ghunim"));
-        panel.add(new JLabel("Número: a22406059"));
         panel.add(new JLabel("Nome: Rodrigo Santos"));
         panel.add(new JLabel("Número: a22410416"));
-
+        panel.add(new JLabel("Nome: Marwan Ghunim"));
+        panel.add(new JLabel("Número: a22406059"));
         return panel;
     }
 
