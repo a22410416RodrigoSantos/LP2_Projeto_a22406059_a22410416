@@ -160,28 +160,25 @@ public class GameManager {
         }
 
         Effect effect = slot.getEffect();
-        String type = effect.getType();
-
-        if ("abismo".equals(type)) {
+        if ("abismo".equals(effect.getType())) {
             Abismo abismo = (Abismo) effect;
             Ferramenta tool = current.getFerramentaQueNeutraliza(abismo);
+
             if (tool != null) {
-                current.removeFerramenta(tool); // ✅ Remove imediatamente
+                current.removeFerramenta(tool); // 🔥 Remove imediatamente
                 return abismo.getTitle();
             } else {
-                abismo.apply(current, this);
+                abismo.apply(current, this); // 🔥 Aplica efeito imediatamente
                 return abismo.getTitle();
             }
-        } else if ("ferramenta".equals(type)) {
+        } else if ("ferramenta".equals(effect.getType())) {
             Ferramenta ferramenta = (Ferramenta) effect;
-            ferramenta.apply(current, this); // ✅ Adiciona imediatamente
+            ferramenta.apply(current, this); // 🔥 Adiciona imediatamente ao inventário
             return ferramenta.getTitle();
         }
 
         return null;
-    }
-
-    private Abismo createAbismoById(int id) {
+    }    private Abismo createAbismoById(int id) {
         switch (id) {
             case 0: return new AbiErroSintaxe();
             case 1: return new AbiErroLogica();
