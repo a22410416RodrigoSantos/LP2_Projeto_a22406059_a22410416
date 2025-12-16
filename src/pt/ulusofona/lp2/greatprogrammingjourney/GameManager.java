@@ -513,13 +513,13 @@ public class GameManager {
             }
         }
 
-        //  Ordenação: posição DESCENDENTE, nome DESCENDENTE
+        // ✅ Ordenação: posição DESCENDENTE, nome ASCENDENTE
         for (int i = 0; i < remaining.size() - 1; i++) {
             for (int j = i + 1; j < remaining.size(); j++) {
                 Programmer a = remaining.get(i);
                 Programmer b = remaining.get(j);
                 if (b.getPosition() > a.getPosition() ||
-                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) > 0)) {
+                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) < 0)) {
                     remaining.set(i, b);
                     remaining.set(j, a);
                 }
