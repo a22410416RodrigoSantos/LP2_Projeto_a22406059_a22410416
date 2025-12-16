@@ -212,9 +212,13 @@ public class GameManager {
     public String getProgrammersInfo() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < players.size(); i++) {
-            if (i > 0) sb.append("\n");
+            if (i > 0) {
+                sb.append("\n");
+            }
             String info = getProgrammerInfoAsStr(players.get(i).getId());
-            if (info == null) info = "-1 | Unknown | 1 | No tools | | Em Jogo";
+            if (info == null) {
+                info = "-1 | Unknown | 1 | No tools | | Em Jogo";
+            }
             sb.append(info);
         }
         return sb.toString();
