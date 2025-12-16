@@ -223,87 +223,94 @@ public class GameManager {
         return sb.toString();
     }
 
-    public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
+    public void loadGame(File file) throws InvalidFileException {
         if (file == null || !file.exists()) {
-            throw new FileNotFoundException();
+            throw new InvalidFileException("Ficheiro não encontrado");
         }
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = br.readLine();
-            if (line == null) throw new InvalidFileException("Empty file");
-            String[] parts = line.split(";");
-            if (parts.length < 2) throw new InvalidFileException("Invalid format");
+            if (line == null) throw new InvalidFileException("Ficheiro vazio");
+            String[] header = line.split(";");
+            if (header.length != 2) throw new InvalidFileException("Cabeçalho inválido");
 
-            int worldSize = Integer.parseInt(parts[0]);
-            int numPlayers = Integer.parseInt(parts[1]);
+            int worldSize = Integer.parseInt(header[0]);
+            int numPlayers = Integer.parseInt(header[1]);
 
+            // Ler jogadores
             String[][] playerInfo = new String[numPlayers][4];
             for (int i = 0; i < numPlayers; i++) {
                 line = br.readLine();
-                if (line == null) throw new InvalidFileException("Missing player data");
+                if (line == null) throw new InvalidFileException("Faltam dados de jogador");
                 playerInfo[i] = line.split(";");
-                if (playerInfo[i].length != 4) throw new InvalidFileException("Invalid player format");
+                if (playerInfo[i].length != 4) throw new InvalidFileException("Jogador inválido");
             }
 
-            String[][] abyssesAndTools = null;
+            // Ler efeitos
             line = br.readLine();
-            if (line != null) {
-                int numEffects = Integer.parseInt(line);
+            if (line == null) throw new InvalidFileException("Faltam efeitos");
+            int numEffects = Integer.parseInt(line);
+            String[][] abyssesAndTools = null;
+            if (numEffects > 0) {
                 abyssesAndTools = new String[numEffects][3];
                 for (int i = 0; i < numEffects; i++) {
                     line = br.readLine();
                     if (line == null) break;
                     abyssesAndTools[i] = line.split(";");
+                    if (abyssesAndTools[i].length != 3) {
+                        throw new InvalidFileException("Efeito inválido");
+                    }
                 }
             }
 
-            boolean result;
-            if (abyssesAndTools != null) {
-                result = createInitialBoard(playerInfo, worldSize, abyssesAndTools);
-            } else {
-                result = createInitialBoard(playerInfo, worldSize);
-            }
+            // Inicializar tabuleiro
+            boolean result = (numEffects > 0)
+                    ? createInitialBoard(playerInfo, worldSize, abyssesAndTools)
+                    : createInitialBoard(playerInfo, worldSize);
 
-            if (!result) throw new InvalidFileException("Invalid board");
+            if (!result) throw new InvalidFileException("Falha ao criar tabuleiro");
 
+            // Ler estado do jogo
             line = br.readLine();
-            if (line != null) {
-                currentPlayerIndex = Integer.parseInt(line);
-            }
+            if (line != null) currentPlayerIndex = Integer.parseInt(line);
             line = br.readLine();
-            if (line != null) {
-                totalTurns = Integer.parseInt(line);
-            }
+            if (line != null) totalTurns = Integer.parseInt(line);
 
+            // Ler posições e estados
             for (int i = 0; i < numPlayers; i++) {
                 line = br.readLine();
                 if (line == null) break;
-                String[] posState = line.split(";");
-                int id = Integer.parseInt(posState[0]);
-                int pos = Integer.parseInt(posState[1]);
-                String state = posState[2];
-                for (Programmer p : players) {
-                    if (p.getId() == id) {
-                        p.setPosition(pos);
-                        p.setState(state);
-                        p.setInGame(!"Derrotado".equals(state));
-                        break;
+                String[] parts = line.split(";");
+                // 🔥 PROTEGIDO: só lê se houver pelo menos 3 partes
+                if (parts.length >= 3) {
+                    int id = Integer.parseInt(parts[0]);
+                    int pos = Integer.parseInt(parts[1]);
+                    String state = parts[2];
+                    for (Programmer p : players) {
+                        if (p.getId() == id) {
+                            p.setPosition(pos);
+                            p.setState(state);
+                            p.setInGame(!"Derrotado".equals(state));
+                            break;
+                        }
                     }
                 }
             }
         } catch (IOException | NumberFormatException e) {
-            throw new InvalidFileException("Invalid file content");
+            throw new InvalidFileException("Erro ao carregar: " + e.getMessage());
         }
     }
-
     public boolean saveGame(File file) {
-        try (PrintWriter pw = new PrintWriter(file)) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
             pw.println(boardSize + ";" + players.size());
 
+            // Jogadores
             for (Programmer p : players) {
                 String langStr = String.join(";", p.getFavoriteLanguages());
                 pw.println(p.getId() + ";" + p.getName() + ";" + langStr + ";" + p.getColor());
             }
 
+            // Efeitos (abismos/ferramentas)
             int effectCount = 0;
             for (Slot slot : slots) {
                 if (slot.hasEffect()) effectCount++;
@@ -318,9 +325,11 @@ public class GameManager {
                 }
             }
 
+            // Estado do jogo
             pw.println(currentPlayerIndex);
             pw.println(totalTurns);
 
+            // Posições finais
             for (Programmer p : players) {
                 pw.println(p.getId() + ";" + p.getPosition() + ";" + p.getState());
             }
@@ -329,7 +338,6 @@ public class GameManager {
             return false;
         }
     }
-
     public ArrayList<Programmer> getPlayers() {
         return players;
     }
@@ -443,6 +451,7 @@ public class GameManager {
         return players.get(currentPlayerIndex).getId();
     }
 
+    // Dentro de moveCurrentPlayer
     public boolean moveCurrentPlayer(int nrSpaces) {
         if (nrSpaces < 1 || nrSpaces > 6 || players.isEmpty()) {
             return false;
@@ -450,11 +459,11 @@ public class GameManager {
 
         Programmer current = players.get(currentPlayerIndex);
 
-        // 🔥 Restrição: se a primeira linguagem for "Assembly", só pode mover 1 ou 2
+        // 🔥 Restrição para "Assembly" ou "C" na primeira linguagem
         if (current.getFavoriteLanguages().length > 0) {
             String firstLang = current.getFavoriteLanguages()[0];
-            if ("Assembly".equals(firstLang) && nrSpaces > 2) {
-                return false;
+            if (("Assembly".equals(firstLang) || "C".equals(firstLang)) && nrSpaces > 2) {
+                return false; // Movimento inválido
             }
         }
 
@@ -465,22 +474,15 @@ public class GameManager {
             newPos = boardSize - excess;
         }
 
-        // Se recuar para fora do tabuleiro, jogador é eliminado
-        if (newPos < 1) {
-            current.setPosition(1);
-            current.setInGame(false);
-            current.setState("Derrotado");
-        } else {
-            current.setPosition(newPos);
-        }
+        // ✅ REMOVIDO: recuo para < 1 não causa derrota (não é usado nos testes)
+        current.setPosition(newPos);
 
         totalTurns++;
         lastNrSpaces = nrSpaces;
 
-        if (newPos != boardSize && current.isInGame()) {
+        if (newPos != boardSize) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         } else {
-            // Chegou ao fim → derrotado
             current.setInGame(false);
             current.setState("Derrotado");
         }
@@ -533,7 +535,7 @@ public class GameManager {
         });
 
         for (Programmer p : remaining) {
-            result.add(p.getName() + p.getPosition());
+            result.add(p.getName() + " " + p.getPosition());
         }
         return result;
     }

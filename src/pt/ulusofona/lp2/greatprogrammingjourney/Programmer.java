@@ -104,7 +104,9 @@ public class Programmer {
 
     public int getPositionFromHistory(int movesBack) {
         int index = positionHistory.size() - 1 - movesBack;
-        if (index < 0) return 1;
+        if (index < 0){
+            return 1;
+        }
         return positionHistory.get(index);
     }
 }
