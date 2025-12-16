@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class FerTratamentoExcepcoes extends Ferramenta {
 
     public FerTratamentoExcepcoes() {
-        super(13, "Tratamento de Excepções", "exception_handling.png");
+        super(3, "Tratamento de Excepções", "exception_handling.png");
     }
 
     @Override

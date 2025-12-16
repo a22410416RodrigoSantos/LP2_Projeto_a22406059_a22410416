@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class FerProgramacaoFuncional extends Ferramenta {
 
     public FerProgramacaoFuncional() {
-        super(11, "Programação Funcional", "functional.png");
+        super(1, "Programação Funcional", "functional.png");
     }
 
     @Override

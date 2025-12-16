@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class FerHeranca extends Ferramenta {
 
     public FerHeranca() {
-        super(10, "Herança", "inheritance.png");
+        super(0, "Herança", "inheritance.png");
     }
 
     @Override

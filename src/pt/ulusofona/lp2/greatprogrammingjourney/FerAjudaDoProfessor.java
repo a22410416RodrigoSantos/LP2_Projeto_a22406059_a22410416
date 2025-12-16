@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class FerAjudaDoProfessor extends Ferramenta {
 
     public FerAjudaDoProfessor() {
-        super(15, "Ajuda do Professor", "professor_help.png");
+        super(5, "Ajuda do Professor", "professor_help.png");
     }
 
     @Override

@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class FerIDE extends Ferramenta {
 
     public FerIDE() {
-        super(14, "IDE", "ide.png");
+        super(4, "IDE", "ide.png");
     }
 
     @Override
