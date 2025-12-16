@@ -11,10 +11,10 @@ public class GameManager {
     private int boardSize = 0;
     private int currentPlayerIndex = 0;
     private int totalTurns = 0;
-    private int lastNrSpaces = 0; // necessário para o abismo "Erro de Lógica"
+    private int lastNrSpaces = 0; // para Erro de Lógica
 
     // ==================================================================
-    // createInitialBoard da Parte 1 (mantido para compatibilidade)
+    // createInitialBoard compatibilidade Parte 1
     // ==================================================================
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
@@ -22,7 +22,7 @@ public class GameManager {
     }
 
     // ==================================================================
-    // Novo createInitialBoard com abismos e ferramentas
+    // createInitialBoard com abismos e ferramentas
     // ==================================================================
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
@@ -43,7 +43,6 @@ public class GameManager {
             slots.add(slot);
         }
 
-        // Marcar início e fim
         slots.get(0).setStart(true);
         slots.get(worldSize - 1).setEnd(true);
 
@@ -59,7 +58,6 @@ public class GameManager {
 
                 if (id <= 0 || name.isEmpty() || !isValidColor(color)) return false;
 
-                // ID duplicado?
                 if (players.stream().anyMatch(p -> p.getId() == id)) return false;
 
                 Programmer p = new Programmer();
@@ -82,7 +80,6 @@ public class GameManager {
 
         if (worldSize < 2 * players.size()) return false;
 
-        // Ordenar por ID
         players.sort((a, b) -> Integer.compare(a.getId(), b.getId()));
 
         // Processar abismos e ferramentas
@@ -112,7 +109,6 @@ public class GameManager {
 
     private Effect createEffect(int type) {
         return switch (type) {
-            // Abismos (IDs 0–9)
             case 0  -> new abiErroSintaxe();
             case 1  -> new abiErroLogica();
             case 2  -> new abiException();
@@ -124,7 +120,6 @@ public class GameManager {
             case 8  -> new abiCicloInfinito();
             case 9  -> new abiSegmentationFault();
 
-            // Ferramentas (IDs 10–15)
             case 10 -> new ferHeranca();
             case 11 -> new ferProgramacaoFuncional();
             case 12 -> new ferTestesUnitarios();
@@ -144,7 +139,7 @@ public class GameManager {
     }
 
     // ==================================================================
-    // Imagens e informação das slots
+    // Imagens e info
     // ==================================================================
 
     public String getImagePng(int nrSquare) {
@@ -173,7 +168,7 @@ public class GameManager {
     }
 
     // ==================================================================
-    // Movimento e reação a efeitos
+    // Movimento – SEM instanceof!
     // ==================================================================
 
     public boolean moveCurrentPlayer(int nrSpaces) {
@@ -181,7 +176,6 @@ public class GameManager {
 
         Programmer current = players.get(currentPlayerIndex);
         if (!current.isInGame()) {
-            // jogador eliminado ou preso → passa turno
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
             return false;
         }
@@ -199,7 +193,6 @@ public class GameManager {
         current.setPosition(newPos);
         totalTurns++;
 
-        // Vitória imediata
         if (newPos == boardSize) {
             current.setState("Vencedor");
             return true;
@@ -210,21 +203,24 @@ public class GameManager {
         if (slot.hasEffect()) {
             Effect effect = slot.getEffect();
 
-            if (effect instanceof Abismo abismo) {
-                // Verificar se tem ferramenta que neutralize
-                Ferramenta ferramenta = current.getFerramentaQueNeutraliza(abismo);
-                if (ferramenta != null) {
-                    current.removeFerramenta(ferramenta);
-                    // efeito neutralizado → nada acontece
+            // Se for uma ferramenta → apanha
+            if (effect instanceof Ferramenta ferramenta) {
+                ferramenta.apply(current, this);
+            }
+            // Se for um abismo → verifica neutralização
+            else if (effect instanceof Abismo abismo) {
+                Ferramenta ferramentaNeutralizadora = current.getFerramentaQueNeutraliza(abismo);
+
+                if (ferramentaNeutralizadora != null && abismo.isNeutralizedBy(ferramentaNeutralizadora)) {
+                    // Neutralizado → consome ferramenta e NÃO aplica efeito
+                    current.removeFerramenta(ferramentaNeutralizadora);
                 } else {
+                    // Não neutralizado → aplica o efeito do abismo
                     abismo.apply(current, this);
                 }
-            } else if (effect instanceof Ferramenta ferramenta) {
-                ferramenta.apply(current, this); // apanha a ferramenta
             }
         }
 
-        // Passar turno se o jogador ainda estiver em jogo
         if (current.isInGame()) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         }
@@ -238,7 +234,7 @@ public class GameManager {
     }
 
     // ==================================================================
-    // Outros métodos obrigatórios (atualizados minimamente)
+    // Outros métodos
     // ==================================================================
 
     public String[] getProgrammerInfo(int id) {
@@ -271,13 +267,11 @@ public class GameManager {
     }
 
     public boolean gameIsOver() {
-        // Alguém chegou ao fim?
         boolean someoneWon = players.stream().anyMatch(p -> p.getPosition() == boardSize);
         if (someoneWon) return true;
 
-        // Ou só ficou 1 jogador ativo?
-        long activeCount = players.stream().filter(Programmer::isInGame).count();
-        return activeCount <= 1;
+        long active = players.stream().filter(Programmer::isInGame).count();
+        return active <= 1;
     }
 
     public ArrayList<String> getGameResults() {
@@ -300,10 +294,7 @@ public class GameManager {
 
         players.stream()
                 .filter(p -> winner == null || p.getId() != winner.getId())
-                .sorted((a, b) -> {
-                    int posCmp = Integer.compare(b.getPosition(), a.getPosition());
-                    return posCmp != 0 ? posCmp : a.getName().compareTo(b.getName());
-                })
+                .sorted((a, b) -> Integer.compare(b.getPosition(), a.getPosition()))
                 .forEach(p -> result.add(p.getName()));
 
         return result;
@@ -312,11 +303,10 @@ public class GameManager {
     public JPanel getAuthorsPanel() {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new java.awt.Dimension(300, 300));
-        panel.add(new JLabel("Nome: Marwan Ghunim"));
-        panel.add(new JLabel("Número: a22406059"));
         panel.add(new JLabel("Nome: Rodrigo Santos"));
         panel.add(new JLabel("Número: a22410416"));
-
+        panel.add(new JLabel("Nome: Marwan Ghunim"));
+        panel.add(new JLabel("Número: a22406059"));
         return panel;
     }
 
@@ -325,15 +315,11 @@ public class GameManager {
     }
 
     // ==================================================================
-    // Métodos auxiliares
+    // Auxiliares
     // ==================================================================
 
     public ArrayList<Programmer> getPlayers() {
         return players;
-    }
-
-    public int getBoardSize() {
-        return boardSize;
     }
 
     public int getLastNrSpaces() {

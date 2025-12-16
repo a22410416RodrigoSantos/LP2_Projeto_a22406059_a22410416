@@ -8,9 +8,12 @@ public class abiBlueScreenOfDeath extends Abismo {
 
     @Override
     public void apply(Programmer programmer, GameManager gameManager) {
-        // Jogador perde imediatamente o jogo
-        programmer.setInGame(false);        // removido dos jogadores ativos
-        programmer.setState("Derrotado");   // estado final
+        programmer.setInGame(false);
+        programmer.setState("Derrotado");
+    }
 
+    @Override
+    public boolean isNeutralizedBy(Ferramenta ferramenta) {
+        return ferramenta.getId() == 15; // Ajuda do Professor
     }
 }

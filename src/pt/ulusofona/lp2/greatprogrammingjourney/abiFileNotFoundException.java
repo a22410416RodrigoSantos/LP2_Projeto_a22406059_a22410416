@@ -8,15 +8,13 @@ public class abiFileNotFoundException extends Abismo {
 
     @Override
     public void apply(Programmer programmer, GameManager gameManager) {
-        // Recua 3 casas
         int currentPos = programmer.getPosition();
-        int newPos = currentPos - 3;
-
-        // Não pode ir abaixo da posição 1
-        if (newPos < 1) {
-            newPos = 1;
-        }
-
+        int newPos = Math.max(1, currentPos - 3);
         programmer.setPosition(newPos);
+    }
+
+    @Override
+    public boolean isNeutralizedBy(Ferramenta ferramenta) {
+        return ferramenta.getId() == 13; // Tratamento de Excepções
     }
 }

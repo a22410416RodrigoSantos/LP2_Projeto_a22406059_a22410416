@@ -12,15 +12,23 @@ public abstract class Abismo implements Effect {
     }
 
     @Override
-    public int getId() { return id; }
+    public int getId() {
+        return id;
+    }
 
     @Override
-    public String getTitle() { return title; }
+    public String getTitle() {
+        return title;
+    }
 
     @Override
-    public String getImageName() { return imageName; }
+    public String getImageName() {
+        return imageName;
+    }
 
-    // Cada abismo implementa o seu efeito
+    public abstract boolean isNeutralizedBy(Ferramenta ferramenta);
+
+
     @Override
     public abstract void apply(Programmer programmer, GameManager gameManager);
 }

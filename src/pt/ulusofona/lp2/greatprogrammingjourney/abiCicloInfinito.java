@@ -10,22 +10,20 @@ public class abiCicloInfinito extends Abismo {
     public void apply(Programmer programmer, GameManager gameManager) {
         int position = programmer.getPosition();
 
-        // Procura se já existe algum programador preso nesta casa
-        Programmer presoAtual = null;
+        // Libertar jogador preso (se existir)
         for (Programmer p : gameManager.getPlayers()) {
             if (p.isInGame() && p.getPosition() == position && "Preso".equals(p.getState())) {
-                presoAtual = p;
+                p.setState("Em Jogo");
                 break;
             }
         }
 
-        // Se houver alguém preso, liberta-o
-        if (presoAtual != null) {
-            presoAtual.setState("Em Jogo");
-        }
-
-        // O novo jogador que chegou fica preso (só se não foi neutralizado pela ferramenta)
-        // Nota: a neutralização já foi verificada no GameManager antes de chamar apply()
+        // Prender o novo jogador
         programmer.setState("Preso");
+    }
+
+    @Override
+    public boolean isNeutralizedBy(Ferramenta ferramenta) {
+        return ferramenta.getId() == 15; // Ajuda do Professor
     }
 }
