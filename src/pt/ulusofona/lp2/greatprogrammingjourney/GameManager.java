@@ -152,31 +152,34 @@ public class GameManager {
 
         Slot slot = slots.get(pos - 1);
         if (!slot.hasEffect()) {
-            return null;
+            return null;  // Só aqui é permitido null (casa vazia)
         }
 
         Effect effect = slot.getEffect();
-        String type = effect.getType();
 
-        if ("abismo".equals(type)) {
+        if ("abismo".equals(effect.getType())) {
             Abismo abismo = (Abismo) effect;
-            Ferramenta tool = current.getFerramentaQueNeutraliza(abismo);
+            Ferramenta ferramentaNeutralizadora = current.getFerramentaQueNeutraliza(abismo);
 
-            if (tool != null) {
-                current.removeFerramenta(tool);
-                return abismo.getTitle();  // Ferramenta usada → efeito anulado
+            if (ferramentaNeutralizadora != null) {
+                current.removeFerramenta(ferramentaNeutralizadora);
+                // Efeito anulado, mas ainda retornamos o título do abismo
+                return abismo.getTitle();
             } else {
+                // Aplica o efeito do abismo
                 abismo.apply(current, this);
-                return abismo.getTitle();  // Efeito aplicado
+                return abismo.getTitle();
             }
-        } else if ("ferramenta".equals(type)) {
+
+        } else if ("ferramenta".equals(effect.getType())) {
             Ferramenta ferramenta = (Ferramenta) effect;
-            ferramenta.apply(current, this);  // Adiciona ao inventário
-            slot.setEffect(null);             // Ferramenta é consumida (removida da casa)
-            slot.setImageName("normal.png");
+            ferramenta.apply(current, this);         // Adiciona ao inventário
+            slot.setEffect(null);                    // Remove da casa (consumida)
+            slot.setImageName("normal.png");         // Atualiza imagem
             return ferramenta.getTitle();
         }
 
+        // Nunca chega aqui se hasEffect() for true
         return null;
     }
     private Abismo createAbismoById(int id) {
