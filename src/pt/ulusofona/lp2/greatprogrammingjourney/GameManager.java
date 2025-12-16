@@ -165,20 +165,21 @@ public class GameManager {
             if (neutralizer != null) {
                 current.removeFerramenta(neutralizer);
                 slot.setEffect(null);
+                return "";
             } else {
                 abismo.apply(current, this);
                 slot.setEffect(null);
+                return "";
             }
-            return null;
-
         } else if ("ferramenta".equals(effectType)) {
             effect.apply(current, this);
             slot.setEffect(null);
-            return null;
+            return "";
         }
 
         return null;
     }
+
     private Abismo createAbismoById(int id) {
         switch (id) {
             case 0: return new AbiErroSintaxe();
@@ -231,6 +232,7 @@ public class GameManager {
             if (line == null) throw new InvalidFileException("Empty file");
             String[] parts = line.split(";");
             if (parts.length < 2) throw new InvalidFileException("Invalid format");
+
             int worldSize = Integer.parseInt(parts[0]);
             int numPlayers = Integer.parseInt(parts[1]);
 
@@ -242,7 +244,25 @@ public class GameManager {
                 if (playerInfo[i].length != 4) throw new InvalidFileException("Invalid player format");
             }
 
-            boolean result = createInitialBoard(playerInfo, worldSize);
+            String[][] abyssesAndTools = null;
+            line = br.readLine();
+            if (line != null) {
+                int numEffects = Integer.parseInt(line);
+                abyssesAndTools = new String[numEffects][3];
+                for (int i = 0; i < numEffects; i++) {
+                    line = br.readLine();
+                    if (line == null) break;
+                    abyssesAndTools[i] = line.split(";");
+                }
+            }
+
+            boolean result;
+            if (abyssesAndTools != null) {
+                result = createInitialBoard(playerInfo, worldSize, abyssesAndTools);
+            } else {
+                result = createInitialBoard(playerInfo, worldSize);
+            }
+
             if (!result) throw new InvalidFileException("Invalid board");
 
             line = br.readLine();
@@ -265,6 +285,7 @@ public class GameManager {
                     if (p.getId() == id) {
                         p.setPosition(pos);
                         p.setState(state);
+                        p.setInGame(!"Derrotado".equals(state));
                         break;
                     }
                 }
@@ -277,12 +298,29 @@ public class GameManager {
     public boolean saveGame(File file) {
         try (PrintWriter pw = new PrintWriter(file)) {
             pw.println(boardSize + ";" + players.size());
+
             for (Programmer p : players) {
                 String langStr = String.join(";", p.getFavoriteLanguages());
                 pw.println(p.getId() + ";" + p.getName() + ";" + langStr + ";" + p.getColor());
             }
+
+            int effectCount = 0;
+            for (Slot slot : slots) {
+                if (slot.hasEffect()) effectCount++;
+            }
+            pw.println(effectCount);
+            for (int i = 0; i < slots.size(); i++) {
+                Slot slot = slots.get(i);
+                if (slot.hasEffect()) {
+                    Effect e = slot.getEffect();
+                    int type = "abismo".equals(e.getType()) ? 0 : 1;
+                    pw.println(type + ";" + e.getId() + ";" + (i + 1));
+                }
+            }
+
             pw.println(currentPlayerIndex);
             pw.println(totalTurns);
+
             for (Programmer p : players) {
                 pw.println(p.getId() + ";" + p.getPosition() + ";" + p.getState());
             }
@@ -353,7 +391,14 @@ public class GameManager {
                     if (i > 0) langStr.append("; ");
                     if (sorted[i] != null) langStr.append(sorted[i]);
                 }
-                String state = (p.getPosition() == boardSize) ? "Derrotado" : "Em Jogo";
+                String state = "Derrotado";
+                if (p.getPosition() == boardSize) {
+                    state = "Derrotado";
+                } else if ("Preso".equals(p.getState())) {
+                    state = "Preso";
+                } else {
+                    state = "Em Jogo";
+                }
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
                         " | No tools | " + langStr.toString() + " | " + state;
             }
@@ -404,6 +449,15 @@ public class GameManager {
         }
 
         Programmer current = players.get(currentPlayerIndex);
+
+        // 🔥 Restrição: se a primeira linguagem for "Assembly", só pode mover 1 ou 2
+        if (current.getFavoriteLanguages().length > 0) {
+            String firstLang = current.getFavoriteLanguages()[0];
+            if ("Assembly".equals(firstLang) && nrSpaces > 2) {
+                return false;
+            }
+        }
+
         int newPos = current.getPosition() + nrSpaces;
 
         if (newPos > boardSize) {
@@ -411,12 +465,24 @@ public class GameManager {
             newPos = boardSize - excess;
         }
 
-        current.setPosition(newPos);
+        // Se recuar para fora do tabuleiro, jogador é eliminado
+        if (newPos < 1) {
+            current.setPosition(1);
+            current.setInGame(false);
+            current.setState("Derrotado");
+        } else {
+            current.setPosition(newPos);
+        }
+
         totalTurns++;
         lastNrSpaces = nrSpaces;
 
-        if (newPos != boardSize) {
+        if (newPos != boardSize && current.isInGame()) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        } else {
+            // Chegou ao fim → derrotado
+            current.setInGame(false);
+            current.setState("Derrotado");
         }
 
         reactToAbyssOrTool();
@@ -467,8 +533,7 @@ public class GameManager {
         });
 
         for (Programmer p : remaining) {
-            // Usar "K" como placeholder para "Herança" (como nos testes)
-            result.add(p.getName() + " com K " + p.getPosition());
+            result.add(p.getName() + p.getPosition());
         }
         return result;
     }
