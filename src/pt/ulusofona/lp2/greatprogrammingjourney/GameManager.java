@@ -155,7 +155,6 @@ public class GameManager {
             return null;
         }
 
-        // 🔥 Efeitos são permanentes — não os removemos
         Effect effect = slot.getEffect();
         String effectType = effect.getType();
 
@@ -165,21 +164,19 @@ public class GameManager {
 
             if (neutralizer != null) {
                 current.removeFerramenta(neutralizer);
-                // Não remove o abismo — outros jogadores também o enfrentam
+                // Não remove o abismo — permanece na casa
+                return abismo.getTitle(); // ex: "Erro de Sintaxe"
             } else {
                 abismo.apply(current, this);
+                return abismo.getTitle();
             }
-            return ""; // 🔥 Nunca null se houver abismo
-
         } else if ("ferramenta".equals(effectType)) {
             effect.apply(current, this);
-            // Ferramenta permanece — pode ser coletada várias vezes
-            return ""; // 🔥 Nunca null se houver ferramenta
+            return effect.getTitle(); // ex: "Herança"
         }
 
         return null;
     }
-
     private Abismo createAbismoById(int id) {
         switch (id) {
             case 0: return new AbiErroSintaxe();
@@ -516,26 +513,25 @@ public class GameManager {
             }
         }
 
-        // ✅ Ordenar por posição descendente, depois nome ascendente
+        //  Ordenação: posição DESCENDENTE, nome DESCENDENTE
         for (int i = 0; i < remaining.size() - 1; i++) {
             for (int j = i + 1; j < remaining.size(); j++) {
                 Programmer a = remaining.get(i);
                 Programmer b = remaining.get(j);
                 if (b.getPosition() > a.getPosition() ||
-                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) < 0)) {
+                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) > 0)) {
                     remaining.set(i, b);
                     remaining.set(j, a);
                 }
             }
         }
 
-        // ✅ Todos os "restantes" estão "Em Jogo"
+        // ✅ Formato: "Nome com K <posição>"
         for (Programmer p : remaining) {
-            result.add(p.getName() + " " + p.getPosition());
+            result.add(p.getName() + " com K " + p.getPosition());
         }
         return result;
     }
-
     public JPanel getAuthorsPanel() {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new java.awt.Dimension(300, 300));
