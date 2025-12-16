@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class AbiErroSintaxe extends Abismo {
 
     public AbiErroSintaxe() {
-        super(0, "Erro de Sintaxe", "syntax_error.png");
+        super(0, "Erro de sintaxe", "syntax_error.png");
     }
 
     @Override
