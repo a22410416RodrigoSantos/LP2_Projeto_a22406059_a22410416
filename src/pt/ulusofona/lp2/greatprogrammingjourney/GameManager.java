@@ -498,7 +498,7 @@ public class GameManager {
         });
 
         for (Programmer p : remaining) {
-            result.add(p.getName() + " com K " + p.getPosition()); // ✅ Formato exato dos testes
+            result.add(p.getName() + " " + p.getPosition()); // ✅ Formato exato dos testes
         }
         return result;
     }
