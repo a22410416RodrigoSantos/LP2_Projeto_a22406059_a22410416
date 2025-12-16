@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiBlueScreenOfDeath extends Abismo {
+public class AbiBlueScreenOfDeath extends Abismo {
 
-    public abiBlueScreenOfDeath() {
+    public AbiBlueScreenOfDeath() {
         super(7, "Blue Screen of Death", "bsod.png");
     }
 

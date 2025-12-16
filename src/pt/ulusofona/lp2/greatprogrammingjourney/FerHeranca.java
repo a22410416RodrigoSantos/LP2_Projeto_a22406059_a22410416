@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferHeranca extends Ferramenta {
+public class FerHeranca extends Ferramenta {
 
-    public ferHeranca() {
+    public FerHeranca() {
         super(10, "Herança", "inheritance.png");
     }
 

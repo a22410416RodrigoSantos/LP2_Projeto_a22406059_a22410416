@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiSegmentationFault extends Abismo {
+public class AbiSegmentationFault extends Abismo {
 
-    public abiSegmentationFault() {
+    public AbiSegmentationFault() {
         super(9, "Segmentation Fault", "seg_fault.png");
     }
 

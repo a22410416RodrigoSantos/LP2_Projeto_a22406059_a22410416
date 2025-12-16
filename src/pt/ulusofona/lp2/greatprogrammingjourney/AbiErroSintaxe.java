@@ -1,14 +1,16 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiCrash extends Abismo {
+public class AbiErroSintaxe extends Abismo {
 
-    public abiCrash() {
-        super(4, "Crash", "crash.png");
+    public AbiErroSintaxe() {
+        super(0, "Erro de Sintaxe", "syntax_error.png");
     }
 
     @Override
     public void apply(Programmer programmer, GameManager gameManager) {
-        programmer.setPosition(1);
+        int currentPos = programmer.getPosition();
+        int newPos = Math.max(1, currentPos - 1);
+        programmer.setPosition(newPos);
     }
 
     @Override

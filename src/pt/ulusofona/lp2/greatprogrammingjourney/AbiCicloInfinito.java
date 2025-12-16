@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiCicloInfinito extends Abismo {
+public class AbiCicloInfinito extends Abismo {
 
-    public abiCicloInfinito() {
+    public AbiCicloInfinito() {
         super(8, "Ciclo Infinito", "infinite_loop.png");
     }
 

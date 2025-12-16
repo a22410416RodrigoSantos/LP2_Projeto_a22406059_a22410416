@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferTratamentoExcepcoes extends Ferramenta {
+public class FerTratamentoExcepcoes extends Ferramenta {
 
-    public ferTratamentoExcepcoes() {
+    public FerTratamentoExcepcoes() {
         super(13, "Tratamento de Excepções", "exception_handling.png");
     }
 

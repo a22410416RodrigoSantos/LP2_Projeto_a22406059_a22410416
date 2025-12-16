@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferTestesUnitarios extends Ferramenta {
+public class FerTestesUnitarios extends Ferramenta {
 
-    public ferTestesUnitarios() {
+    public FerTestesUnitarios() {
         super(12, "Testes Unitários", "unit_tests.png");
     }
 

@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferIDE extends Ferramenta {
+public class FerIDE extends Ferramenta {
 
-    public ferIDE() {
+    public FerIDE() {
         super(14, "IDE", "ide.png");
     }
 

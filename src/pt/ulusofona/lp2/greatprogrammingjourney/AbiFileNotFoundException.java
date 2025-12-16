@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiFileNotFoundException extends Abismo {
+public class AbiFileNotFoundException extends Abismo {
 
-    public abiFileNotFoundException() {
+    public AbiFileNotFoundException() {
         super(3, "FileNotFoundException", "file_not_found.png");
     }
 

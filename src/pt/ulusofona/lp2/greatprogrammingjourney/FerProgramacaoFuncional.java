@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferProgramacaoFuncional extends Ferramenta {
+public class FerProgramacaoFuncional extends Ferramenta {
 
-    public ferProgramacaoFuncional() {
+    public FerProgramacaoFuncional() {
         super(11, "Programação Funcional", "functional.png");
     }
 

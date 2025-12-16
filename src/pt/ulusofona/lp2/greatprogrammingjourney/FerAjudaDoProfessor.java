@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class ferAjudaDoProfessor extends Ferramenta {
+public class FerAjudaDoProfessor extends Ferramenta {
 
-    public ferAjudaDoProfessor() {
+    public FerAjudaDoProfessor() {
         super(15, "Ajuda do Professor", "professor_help.png");
     }
 

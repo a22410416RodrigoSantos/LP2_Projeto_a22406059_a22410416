@@ -1,8 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class abiException extends Abismo {
+public class AbiException extends Abismo {
 
-    public abiException() {
+    public AbiException() {
         super(2, "Exception", "exception.png");
     }
 

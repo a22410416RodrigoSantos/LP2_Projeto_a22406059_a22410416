@@ -2,9 +2,9 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import java.util.List;
 
-public class abiCodigoDuplicado extends Abismo {
+public class AbiCodigoDuplicado extends Abismo {
 
-    public abiCodigoDuplicado() {
+    public AbiCodigoDuplicado() {
         super(5, "Código Duplicado", "duplicated_code.png");
     }
 

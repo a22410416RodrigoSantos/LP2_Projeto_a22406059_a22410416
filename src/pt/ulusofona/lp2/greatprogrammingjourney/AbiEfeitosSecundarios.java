@@ -2,9 +2,9 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import java.util.List;
 
-public class abiEfeitosSecundarios extends Abismo {
+public class AbiEfeitosSecundarios extends Abismo {
 
-    public abiEfeitosSecundarios() {
+    public AbiEfeitosSecundarios() {
         super(6, "Efeitos Secundários", "side_effects.png");
     }
 
