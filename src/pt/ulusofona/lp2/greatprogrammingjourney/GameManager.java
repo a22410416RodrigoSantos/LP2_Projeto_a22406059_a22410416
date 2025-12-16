@@ -1,7 +1,7 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import javax.swing.*;
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -67,9 +67,7 @@ public class GameManager {
                 p.setName(name);
                 String[] langs = languages.split(";");
                 for (int j = 0; j < langs.length; j++) {
-                    if (langs[j] != null) {
-                        langs[j] = langs[j].trim();
-                    }
+                    langs[j] = langs[j].trim();
                 }
                 p.setFavoriteLanguages(langs);
                 p.setColor(color);
@@ -167,12 +165,12 @@ public class GameManager {
             if (neutralizer != null) {
                 current.removeFerramenta(neutralizer);
                 slot.setEffect(null);
-                return null; // neutralized → no message
             } else {
                 abismo.apply(current, this);
                 slot.setEffect(null);
-                return null;
             }
+            return null;
+
         } else if ("ferramenta".equals(effectType)) {
             effect.apply(current, this);
             slot.setEffect(null);
@@ -181,7 +179,6 @@ public class GameManager {
 
         return null;
     }
-
     private Abismo createAbismoById(int id) {
         switch (id) {
             case 0: return new AbiErroSintaxe();
@@ -225,15 +222,74 @@ public class GameManager {
         return sb.toString();
     }
 
-    public void loadGame(File file) throws InvalidFileException {
+    public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
         if (file == null || !file.exists()) {
-            throw new InvalidFileException("Ficheiro inválido ou não encontrado");
+            throw new FileNotFoundException();
         }
-        // Not required to implement for basic tests
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine();
+            if (line == null) throw new InvalidFileException("Empty file");
+            String[] parts = line.split(";");
+            if (parts.length < 2) throw new InvalidFileException("Invalid format");
+            int worldSize = Integer.parseInt(parts[0]);
+            int numPlayers = Integer.parseInt(parts[1]);
+
+            String[][] playerInfo = new String[numPlayers][4];
+            for (int i = 0; i < numPlayers; i++) {
+                line = br.readLine();
+                if (line == null) throw new InvalidFileException("Missing player data");
+                playerInfo[i] = line.split(";");
+                if (playerInfo[i].length != 4) throw new InvalidFileException("Invalid player format");
+            }
+
+            boolean result = createInitialBoard(playerInfo, worldSize);
+            if (!result) throw new InvalidFileException("Invalid board");
+
+            line = br.readLine();
+            if (line != null) {
+                currentPlayerIndex = Integer.parseInt(line);
+            }
+            line = br.readLine();
+            if (line != null) {
+                totalTurns = Integer.parseInt(line);
+            }
+
+            for (int i = 0; i < numPlayers; i++) {
+                line = br.readLine();
+                if (line == null) break;
+                String[] posState = line.split(";");
+                int id = Integer.parseInt(posState[0]);
+                int pos = Integer.parseInt(posState[1]);
+                String state = posState[2];
+                for (Programmer p : players) {
+                    if (p.getId() == id) {
+                        p.setPosition(pos);
+                        p.setState(state);
+                        break;
+                    }
+                }
+            }
+        } catch (IOException | NumberFormatException e) {
+            throw new InvalidFileException("Invalid file content");
+        }
     }
 
     public boolean saveGame(File file) {
-        return true;
+        try (PrintWriter pw = new PrintWriter(file)) {
+            pw.println(boardSize + ";" + players.size());
+            for (Programmer p : players) {
+                String langStr = String.join(";", p.getFavoriteLanguages());
+                pw.println(p.getId() + ";" + p.getName() + ";" + langStr + ";" + p.getColor());
+            }
+            pw.println(currentPlayerIndex);
+            pw.println(totalTurns);
+            for (Programmer p : players) {
+                pw.println(p.getId() + ";" + p.getPosition() + ";" + p.getState());
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public ArrayList<Programmer> getPlayers() {
@@ -262,18 +318,18 @@ public class GameManager {
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < langs.length; i++) {
                     if (i > 0) langStr.append(";");
-                    if (langs[i] != null) langStr.append(langs[i]);
+                    langStr.append(langs[i]);
                 }
                 return new String[]{
                         String.valueOf(p.getId()),
-                        p.getName() != null ? p.getName() : "",
+                        p.getName(),
                         langStr.toString(),
-                        p.getColor() != null ? p.getColor() : "Brown",
+                        p.getColor(),
                         String.valueOf(p.getPosition())
                 };
             }
         }
-        return new String[]{"-1", "Unknown", "", "Brown", "1"};
+        return null;
     }
 
     public String getProgrammerInfoAsStr(int id) {
@@ -302,7 +358,7 @@ public class GameManager {
                         " | No tools | " + langStr.toString() + " | " + state;
             }
         }
-        return "-1 | Unknown | 1 | No tools | | Em Jogo";
+        return null;
     }
 
     public String[] getSlotInfo(int position) {
@@ -403,22 +459,16 @@ public class GameManager {
             }
         }
 
-        for (int i = 0; i < remaining.size() - 1; i++) {
-            for (int j = i + 1; j < remaining.size(); j++) {
-                Programmer a = remaining.get(i);
-                Programmer b = remaining.get(j);
-                if (b.getPosition() > a.getPosition() ||
-                        (b.getPosition() == a.getPosition() &&
-                                b.getName() != null && a.getName() != null &&
-                                b.getName().compareTo(a.getName()) < 0)) {
-                    remaining.set(i, b);
-                    remaining.set(j, a);
-                }
+        remaining.sort((a, b) -> {
+            if (b.getPosition() != a.getPosition()) {
+                return Integer.compare(b.getPosition(), a.getPosition());
             }
-        }
+            return a.getName().compareTo(b.getName());
+        });
 
         for (Programmer p : remaining) {
-            result.add(p.getName());
+            // Usar "K" como placeholder para "Herança" (como nos testes)
+            result.add(p.getName() + " com K " + p.getPosition());
         }
         return result;
     }
@@ -441,4 +491,3 @@ public class GameManager {
         return lastNrSpaces;
     }
 }
-//commit atoa

@@ -18,41 +18,19 @@ public class Programmer {
         positionHistory.add(1);
     }
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String[] getFavoriteLanguages() { return favoriteLanguages; }
+    public void setFavoriteLanguages(String[] langs) { this.favoriteLanguages = langs; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 
-    public String[] getFavoriteLanguages() {
-        return favoriteLanguages;
-    }
-
-    public void setFavoriteLanguages(String[] langs) {
-        this.favoriteLanguages = langs;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public int getPosition() {
-        return position;
-    }
+    public int getPosition() { return position; }
 
     public void setPosition(int pos) {
         if (pos < 1) {
@@ -64,10 +42,7 @@ public class Programmer {
         this.position = pos;
     }
 
-    public boolean isInGame() {
-        return inGame;
-    }
-
+    public boolean isInGame() { return inGame; }
     public void setInGame(boolean inGame) {
         this.inGame = inGame;
         if (!inGame) {
@@ -75,17 +50,10 @@ public class Programmer {
         }
     }
 
-    public String getState() {
-        return state;
-    }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
 
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public List<Ferramenta> getInventory() {
-        return inventory;
-    }
+    public List<Ferramenta> getInventory() { return inventory; }
 
     public void addFerramenta(Ferramenta ferramenta) {
         if (ferramenta != null) {
@@ -112,9 +80,7 @@ public class Programmer {
 
     public int getPositionFromHistory(int movesBack) {
         int index = positionHistory.size() - 1 - movesBack;
-        if (index < 0) {
-            return 1;
-        }
+        if (index < 0) return 1;
         return positionHistory.get(index);
     }
 }

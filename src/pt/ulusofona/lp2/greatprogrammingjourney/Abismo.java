@@ -11,20 +11,11 @@ public abstract class Abismo implements Effect {
         this.imageName = imageName;
     }
 
-    @Override
-    public int getId() { return id; }
-
-    @Override
-    public String getTitle() { return title; }
-
-    @Override
-    public String getImageName() { return imageName; }
-
-    @Override
-    public String getType() { return "abismo"; }
+    @Override public int getId() { return id; }
+    @Override public String getTitle() { return title; }
+    @Override public String getImageName() { return imageName; }
+    @Override public String getType() { return "abismo"; }
 
     public abstract boolean isNeutralizedBy(Ferramenta ferramenta);
-
-    @Override
-    public abstract void apply(Programmer programmer, GameManager gameManager);
+    @Override public abstract void apply(Programmer programmer, GameManager gameManager);
 }

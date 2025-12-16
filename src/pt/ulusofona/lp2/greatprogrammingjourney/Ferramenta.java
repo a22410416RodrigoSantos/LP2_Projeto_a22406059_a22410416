@@ -11,17 +11,10 @@ public abstract class Ferramenta implements Effect {
         this.imageName = imageName;
     }
 
-    @Override
-    public int getId() { return id; }
-
-    @Override
-    public String getTitle() { return title; }
-
-    @Override
-    public String getImageName() { return imageName; }
-
-    @Override
-    public String getType() { return "ferramenta"; }
+    @Override public int getId() { return id; }
+    @Override public String getTitle() { return title; }
+    @Override public String getImageName() { return imageName; }
+    @Override public String getType() { return "ferramenta"; }
 
     @Override
     public void apply(Programmer programmer, GameManager gameManager) {
