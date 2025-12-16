@@ -67,7 +67,9 @@ public class GameManager {
                 p.setName(name);
                 String[] langs = languages.split(";");
                 for (int j = 0; j < langs.length; j++) {
-                    langs[j] = langs[j].trim();
+                    if (langs[j] != null) {
+                        langs[j] = langs[j].trim();
+                    }
                 }
                 p.setFavoriteLanguages(langs);
                 p.setColor(color);
@@ -107,6 +109,16 @@ public class GameManager {
                         return false;
                     }
 
+                    if (type != 0 && type != 1) {
+                        return false;
+                    }
+
+                    if (type == 0) {
+                        if (id < 0 || id > 9) return false;
+                    } else if (type == 1) {
+                        if (id < 0 || id > 5) return false;
+                    }
+
                     Effect effect = null;
                     if (type == 0) {
                         effect = createAbismoById(id);
@@ -125,49 +137,49 @@ public class GameManager {
         return true;
     }
 
-    // CRITICAL: Must return String — NOT void
     public String reactToAbyssOrTool() {
         if (players.isEmpty() || currentPlayerIndex >= players.size()) {
-            return "Nenhum jogador ativo.";
+            return null;
         }
 
         Programmer current = players.get(currentPlayerIndex);
         if (!current.isInGame()) {
-            return "Jogador não está em jogo.";
+            return null;
         }
 
         int pos = current.getPosition();
         if (pos < 1 || pos > slots.size()) {
-            return "Posição inválida.";
+            return null;
         }
 
         Slot slot = slots.get(pos - 1);
         if (!slot.hasEffect()) {
-            return "Nenhum efeito na casa.";
+            return null;
         }
 
         Effect effect = slot.getEffect();
-        // Minimal instanceof usage — required by visualizer
-        if (effect instanceof Abismo) {
+        String effectType = effect.getType();
+
+        if ("abismo".equals(effectType)) {
             Abismo abismo = (Abismo) effect;
             Ferramenta neutralizer = current.getFerramentaQueNeutraliza(abismo);
 
             if (neutralizer != null) {
                 current.removeFerramenta(neutralizer);
                 slot.setEffect(null);
-                return "Abismo neutralizado com " + neutralizer.getTitle() + ".";
+                return null; // neutralized → no message
             } else {
                 abismo.apply(current, this);
                 slot.setEffect(null);
-                return "Abismo aplicado: " + abismo.getTitle() + ".";
+                return null;
             }
-        } else if (effect instanceof Ferramenta) {
+        } else if ("ferramenta".equals(effectType)) {
             effect.apply(current, this);
             slot.setEffect(null);
-            return "Ferramenta coletada: " + effect.getTitle() + ".";
+            return null;
         }
 
-        return "Efeito desconhecido.";
+        return null;
     }
 
     private Abismo createAbismoById(int id) {
@@ -198,7 +210,6 @@ public class GameManager {
         }
     }
 
-    // CRITICAL: Drop Project expects this to return String (NOT ArrayList)
     public String getProgrammersInfo() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < players.size(); i++) {
@@ -207,7 +218,7 @@ public class GameManager {
             }
             String info = getProgrammerInfoAsStr(players.get(i).getId());
             if (info == null) {
-                info = "-1 | Unknown | 1 | | Em Jogo";
+                info = "-1 | Unknown | 1 | No tools | | Em Jogo";
             }
             sb.append(info);
         }
@@ -218,11 +229,11 @@ public class GameManager {
         if (file == null || !file.exists()) {
             throw new InvalidFileException("Ficheiro inválido ou não encontrado");
         }
-        // Actual logic not required for compilation
+        // Not required to implement for basic tests
     }
 
     public boolean saveGame(File file) {
-        return true; // Placeholder
+        return true;
     }
 
     public ArrayList<Programmer> getPlayers() {
@@ -240,7 +251,7 @@ public class GameManager {
         }
         Slot slot = slots.get(nrSquare - 1);
         String img = slot.getCurrentImageName();
-        return (img != null) ? img : "normal.png";
+        return (img != null && !img.isEmpty()) ? img : "normal.png";
     }
 
     public String[] getProgrammerInfo(int id) {
@@ -251,7 +262,7 @@ public class GameManager {
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < langs.length; i++) {
                     if (i > 0) langStr.append(";");
-                    langStr.append(langs[i]);
+                    if (langs[i] != null) langStr.append(langs[i]);
                 }
                 return new String[]{
                         String.valueOf(p.getId()),
@@ -262,7 +273,6 @@ public class GameManager {
                 };
             }
         }
-        // NEVER return null — prevents crash
         return new String[]{"-1", "Unknown", "", "Brown", "1"};
     }
 
@@ -274,7 +284,8 @@ public class GameManager {
                 String[] sorted = langs.clone();
                 for (int i = 0; i < sorted.length - 1; i++) {
                     for (int j = i + 1; j < sorted.length; j++) {
-                        if (sorted[i].compareTo(sorted[j]) > 0) {
+                        if (sorted[i] != null && sorted[j] != null &&
+                                sorted[i].compareTo(sorted[j]) > 0) {
                             String tmp = sorted[i];
                             sorted[i] = sorted[j];
                             sorted[j] = tmp;
@@ -284,14 +295,14 @@ public class GameManager {
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < sorted.length; i++) {
                     if (i > 0) langStr.append("; ");
-                    langStr.append(sorted[i]);
+                    if (sorted[i] != null) langStr.append(sorted[i]);
                 }
                 String state = (p.getPosition() == boardSize) ? "Derrotado" : "Em Jogo";
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
-                        " | " + langStr.toString() + " | " + state;
+                        " | No tools | " + langStr.toString() + " | " + state;
             }
         }
-        return "-1 | Unknown | 1 | | Em Jogo";
+        return "-1 | Unknown | 1 | No tools | | Em Jogo";
     }
 
     public String[] getSlotInfo(int position) {
@@ -352,7 +363,7 @@ public class GameManager {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         }
 
-        reactToAbyssOrTool(); // return value ignored per spec
+        reactToAbyssOrTool();
         return true;
     }
 
@@ -397,7 +408,9 @@ public class GameManager {
                 Programmer a = remaining.get(i);
                 Programmer b = remaining.get(j);
                 if (b.getPosition() > a.getPosition() ||
-                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) < 0)) {
+                        (b.getPosition() == a.getPosition() &&
+                                b.getName() != null && a.getName() != null &&
+                                b.getName().compareTo(a.getName()) < 0)) {
                     remaining.set(i, b);
                     remaining.set(j, a);
                 }

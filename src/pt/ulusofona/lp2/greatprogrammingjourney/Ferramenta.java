@@ -20,12 +20,13 @@ public abstract class Ferramenta implements Effect {
     @Override
     public String getImageName() { return imageName; }
 
-    // Quando o jogador cai numa casa com ferramenta, apanha-a
+    @Override
+    public String getType() { return "ferramenta"; }
+
     @Override
     public void apply(Programmer programmer, GameManager gameManager) {
         programmer.addFerramenta(this);
     }
 
-    // Cada ferramenta decide se anula um abismo específico
     public abstract boolean podeNeutralizar(Abismo abismo);
 }
