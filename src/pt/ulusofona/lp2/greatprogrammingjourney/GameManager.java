@@ -112,9 +112,13 @@ public class GameManager {
                     }
 
                     if (type == 0) {
-                        if (id < 0 || id > 9) return false;
+                        if (id < 0 || id > 9) {
+                            return false;
+                        };
                     } else if (type == 1) {
-                        if (id < 0 || id > 5) return false;
+                        if (id < 0 || id > 5){
+                            return false;
+                        }
                     }
 
                     Effect effect = null;
@@ -217,12 +221,18 @@ public class GameManager {
     }
 
     public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
-        if (file == null || !file.exists()) throw new FileNotFoundException();
+        if (file == null || !file.exists()) {
+            throw new FileNotFoundException();
+        }
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = br.readLine();
-            if (line == null) throw new InvalidFileException("Empty file");
+            if (line == null) {
+                throw new InvalidFileException("Empty file");
+            }
             String[] parts = line.split(";");
-            if (parts.length < 2) throw new InvalidFileException("Invalid header");
+            if (parts.length < 2) {
+                throw new InvalidFileException("Invalid header");
+            }
 
             int worldSize = Integer.parseInt(parts[0]);
             int numPlayers = Integer.parseInt(parts[1]);
@@ -230,9 +240,13 @@ public class GameManager {
             String[][] playerInfo = new String[numPlayers][4];
             for (int i = 0; i < numPlayers; i++) {
                 line = br.readLine();
-                if (line == null) throw new InvalidFileException("Missing player data");
+                if (line == null) {
+                    throw new InvalidFileException("Missing player data");
+                }
                 playerInfo[i] = line.split(";");
-                if (playerInfo[i].length != 4) throw new InvalidFileException("Invalid player data");
+                if (playerInfo[i].length != 4) {
+                    throw new InvalidFileException("Invalid player data");
+                }
             }
 
             String[][] abyssesAndTools = null;
@@ -243,9 +257,13 @@ public class GameManager {
                     abyssesAndTools = new String[numEffects][3];
                     for (int i = 0; i < numEffects; i++) {
                         line = br.readLine();
-                        if (line == null) break;
+                        if (line == null) {
+                            break;
+                        }
                         abyssesAndTools[i] = line.split(";");
-                        if (abyssesAndTools[i].length != 3) throw new InvalidFileException("Invalid effect data");
+                        if (abyssesAndTools[i].length != 3) {
+                            throw new InvalidFileException("Invalid effect data");
+                        }
                     }
                 }
             }
@@ -253,16 +271,24 @@ public class GameManager {
             boolean success = (abyssesAndTools != null)
                     ? createInitialBoard(playerInfo, worldSize, abyssesAndTools)
                     : createInitialBoard(playerInfo, worldSize);
-            if (!success) throw new InvalidFileException("Failed to recreate board");
+            if (!success) {
+                throw new InvalidFileException("Failed to recreate board");
+            }
 
             line = br.readLine();
-            if (line != null) currentPlayerIndex = Integer.parseInt(line);
+            if (line != null) {
+                currentPlayerIndex = Integer.parseInt(line);
+            }
             line = br.readLine();
-            if (line != null) totalTurns = Integer.parseInt(line);
+            if (line != null) {
+                totalTurns = Integer.parseInt(line);
+            }
 
             for (int i = 0; i < numPlayers; i++) {
                 line = br.readLine();
-                if (line == null) break;
+                if (line == null) {
+                    break;
+                }
                 String[] playerState = line.split(";");
                 if (playerState.length >= 3) {
                     int id = Integer.parseInt(playerState[0]);
@@ -294,7 +320,9 @@ public class GameManager {
 
             int effectCount = 0;
             for (Slot s : slots) {
-                if (s.hasEffect()) effectCount++;
+                if (s.hasEffect()) {
+                    effectCount++;
+                }
             }
             pw.println(effectCount);
 
@@ -341,10 +369,14 @@ public class GameManager {
         for (Programmer p : players) {
             if (p.getId() == id) {
                 String[] langs = p.getFavoriteLanguages();
-                if (langs == null) langs = new String[0];
+                if (langs == null) {
+                    langs = new String[0];
+                }
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < langs.length; i++) {
-                    if (i > 0) langStr.append(";");
+                    if (i > 0) {
+                        langStr.append(";");
+                    }
                     langStr.append(langs[i]);
                 }
                 return new String[]{
@@ -366,7 +398,9 @@ public class GameManager {
                 java.util.Arrays.sort(langs);
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < langs.length; i++) {
-                    if (i > 0) langStr.append("; ");
+                    if (i > 0) {
+                        langStr.append("; ");
+                    }
                     langStr.append(langs[i]);
                 }
                 String state = p.isInGame() ? "Em Jogo" : "Derrotado";
@@ -416,7 +450,9 @@ public class GameManager {
     }
 
     public int getCurrentPlayerID() {
-        if (players.isEmpty()) return -1;
+        if (players.isEmpty()) {
+            return -1;
+        }
         return players.get(currentPlayerIndex).getId();
     }
 
@@ -429,8 +465,12 @@ public class GameManager {
 
         if (current.getFavoriteLanguages().length > 0) {
             String first = current.getFavoriteLanguages()[0];
-            if ("Assembly".equals(first) && nrSpaces > 2) return false;
-            if ("C".equals(first) && nrSpaces > 3) return false;
+            if ("Assembly".equals(first) && nrSpaces > 2) {
+                return false;
+            }
+            if ("C".equals(first) && nrSpaces > 3) {
+                return false;
+            }
         }
 
         int newPos = current.getPosition() + nrSpaces;
