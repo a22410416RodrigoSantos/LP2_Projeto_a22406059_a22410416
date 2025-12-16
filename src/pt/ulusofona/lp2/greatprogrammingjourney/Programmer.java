@@ -79,6 +79,10 @@ public class Programmer {
         return inventory;
     }
 
+    public List<Ferramenta> getFerramentas() {
+        return new ArrayList<>(inventory);
+    }
+
     public void addFerramenta(Ferramenta ferramenta) {
         if (ferramenta != null) {
             inventory.add(ferramenta);
@@ -109,4 +113,5 @@ public class Programmer {
         }
         return positionHistory.get(index);
     }
+
 }

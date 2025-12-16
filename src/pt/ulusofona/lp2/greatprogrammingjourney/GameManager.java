@@ -146,7 +146,7 @@ public class GameManager {
         }
 
         int pos = current.getPosition();
-        if (pos < 1 || pos > slots.size()) {
+        if (pos < 1 || pos > boardSize) {
             return null;
         }
 
@@ -156,23 +156,25 @@ public class GameManager {
         }
 
         Effect effect = slot.getEffect();
-        String effectType = effect.getType();
+        String type = effect.getType();
 
-        if ("abismo".equals(effectType)) {
+        if ("abismo".equals(type)) {
             Abismo abismo = (Abismo) effect;
-            Ferramenta neutralizer = current.getFerramentaQueNeutraliza(abismo);
+            Ferramenta tool = current.getFerramentaQueNeutraliza(abismo);
 
-            if (neutralizer != null) {
-                current.removeFerramenta(neutralizer);
-                // Não remove o abismo — permanece na casa
-                return abismo.getTitle(); // ex: "Erro de Sintaxe"
+            if (tool != null) {
+                current.removeFerramenta(tool);
+                return abismo.getTitle();  // Ferramenta usada → efeito anulado
             } else {
                 abismo.apply(current, this);
-                return abismo.getTitle();
+                return abismo.getTitle();  // Efeito aplicado
             }
-        } else if ("ferramenta".equals(effectType)) {
-            effect.apply(current, this);
-            return effect.getTitle(); // ex: "Herança"
+        } else if ("ferramenta".equals(type)) {
+            Ferramenta ferramenta = (Ferramenta) effect;
+            ferramenta.apply(current, this);  // Adiciona ao inventário
+            slot.setEffect(null);             // Ferramenta é consumida (removida da casa)
+            slot.setImageName("normal.png");
+            return ferramenta.getTitle();
         }
 
         return null;
@@ -305,14 +307,15 @@ public class GameManager {
             }
 
             int effectCount = 0;
-            for (Slot slot : slots) {
-                if (slot.hasEffect()) effectCount++;
+            for (Slot s : slots) {
+                if (s.hasEffect()) effectCount++;
             }
             pw.println(effectCount);
+
             for (int i = 0; i < slots.size(); i++) {
-                Slot slot = slots.get(i);
-                if (slot.hasEffect()) {
-                    Effect e = slot.getEffect();
+                Slot s = slots.get(i);
+                if (s.hasEffect()) {
+                    Effect e = s.getEffect();
                     int type = "abismo".equals(e.getType()) ? 0 : 1;
                     pw.println(type + ";" + e.getId() + ";" + (i + 1));
                 }
@@ -322,7 +325,12 @@ public class GameManager {
             pw.println(totalTurns);
 
             for (Programmer p : players) {
-                pw.println(p.getId() + ";" + p.getPosition() + ";" + p.getState());
+                StringBuilder toolIds = new StringBuilder();
+                for (Ferramenta f : p.getFerramentas()) {
+                    if (toolIds.length() > 0) toolIds.append(",");
+                    toolIds.append(f.getId());
+                }
+                pw.println(p.getId() + ";" + p.getPosition() + ";" + p.getState() + ";" + toolIds);
             }
             return true;
         } catch (IOException e) {
@@ -373,27 +381,30 @@ public class GameManager {
     public String getProgrammerInfoAsStr(int id) {
         for (Programmer p : players) {
             if (p.getId() == id) {
+                // Linguagens ordenadas alfabeticamente
                 String[] langs = p.getFavoriteLanguages().clone();
-                for (int i = 0; i < langs.length - 1; i++) {
-                    for (int j = i + 1; j < langs.length; j++) {
-                        if (langs[i].compareTo(langs[j]) > 0) {
-                            String temp = langs[i];
-                            langs[i] = langs[j];
-                            langs[j] = temp;
-                        }
-                    }
-                }
+                java.util.Arrays.sort(langs);
                 StringBuilder langStr = new StringBuilder();
                 for (int i = 0; i < langs.length; i++) {
                     if (i > 0) langStr.append("; ");
                     langStr.append(langs[i]);
                 }
 
-                // ✅ Apenas "Derrotado" se na última casa
-                String state = (p.getPosition() == boardSize) ? "Derrotado" : "Em Jogo";
+                // Ferramentas ordenadas pelo título
+                ArrayList<Ferramenta> tools = new ArrayList<>(p.getFerramentas());
+                tools.sort((a, b) -> a.getTitle().compareTo(b.getTitle()));
+                StringBuilder toolsStr = new StringBuilder();
+                for (int i = 0; i < tools.size(); i++) {
+                    if (i > 0) toolsStr.append("; ");
+                    toolsStr.append(tools.get(i).getTitle());
+                }
+                String toolsText = toolsStr.length() == 0 ? "No tools" : toolsStr.toString();
+
+                // Estado: apenas "Derrotado" se não estiver mais em jogo (inclui vencedor)
+                String state = p.isInGame() ? "Em Jogo" : "Derrotado";
 
                 return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
-                        " | No tools | " + langStr.toString() + " | " + state;
+                        " | " + toolsText + " | " + langStr + " | " + state;
             }
         }
         return null;
@@ -401,32 +412,40 @@ public class GameManager {
 
     public String[] getSlotInfo(int position) {
         if (position < 1 || position > boardSize) {
-            return new String[]{""};
+            return new String[]{"", "", ""};
         }
 
         ArrayList<Integer> ids = new ArrayList<>();
         for (Programmer p : players) {
-            if (p.getPosition() == position) {
+            if (p.getPosition() == position && p.isInGame()) {
                 ids.add(p.getId());
             }
         }
 
-        for (int i = 0; i < ids.size() - 1; i++) {
-            for (int j = i + 1; j < ids.size(); j++) {
-                if (ids.get(i) > ids.get(j)) {
-                    int temp = ids.get(i);
-                    ids.set(i, ids.get(j));
-                    ids.set(j, temp);
-                }
-            }
-        }
+        ids.sort(Integer::compareTo);
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < ids.size(); i++) {
             if (i > 0) sb.append(",");
             sb.append(ids.get(i));
         }
-        return new String[]{sb.toString()};
+
+        String[] result = new String[3];
+        result[0] = sb.toString();
+        result[1] = "";  // Abismo
+        result[2] = "";  // Ferramenta
+
+        Slot slot = slots.get(position - 1);
+        if (slot.hasEffect()) {
+            Effect e = slot.getEffect();
+            if ("abismo".equals(e.getType())) {
+                result[1] = e.getTitle();
+            } else if ("ferramenta".equals(e.getType())) {
+                result[2] = e.getTitle();
+            }
+        }
+
+        return result;
     }
 
     public int getCurrentPlayerID() {
@@ -506,29 +525,19 @@ public class GameManager {
         result.add("");
         result.add("RESTANTES");
 
-        ArrayList<Programmer> remaining = new ArrayList<>();
-        for (Programmer p : players) {
-            if (winner == null || p.getId() != winner.getId()) {
-                remaining.add(p);
-            }
-        }
+        ArrayList<Programmer> remaining = new ArrayList<>(players);
+        remaining.removeIf(p -> p.getPosition() == boardSize);
 
-        // ✅ Ordenação: posição DESCENDENTE, nome ASCENDENTE
-        for (int i = 0; i < remaining.size() - 1; i++) {
-            for (int j = i + 1; j < remaining.size(); j++) {
-                Programmer a = remaining.get(i);
-                Programmer b = remaining.get(j);
-                if (b.getPosition() > a.getPosition() ||
-                        (b.getPosition() == a.getPosition() && b.getName().compareTo(a.getName()) < 0)) {
-                    remaining.set(i, b);
-                    remaining.set(j, a);
-                }
+        // Ordenação: maior posição → menor posição, desempate por nome ascendente
+        remaining.sort((a, b) -> {
+            if (b.getPosition() != a.getPosition()) {
+                return Integer.compare(b.getPosition(), a.getPosition());
             }
-        }
+            return a.getName().compareTo(b.getName());
+        });
 
-        // ✅ Formato: "Nome com K <posição>"
         for (Programmer p : remaining) {
-            result.add(p.getName() + " com K " + p.getPosition());
+            result.add(p.getName() + " " + p.getPosition());
         }
         return result;
     }
