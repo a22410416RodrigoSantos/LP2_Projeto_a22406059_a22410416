@@ -181,31 +181,128 @@ public class GameManager {
     }
 
     private Abismo createAbismoById(int id) {
-        switch (id) {
-            case 0: return new AbiErroSintaxe();
-            case 1: return new AbiErroLogica();
-            case 2: return new AbiException();
-            case 3: return new AbiFileNotFoundException();
-            case 4: return new AbiCrash();
-            case 5: return new AbiCodigoDuplicado();
-            case 6: return new AbiEfeitosSecundarios();
-            case 7: return new AbiBlueScreenOfDeath();
-            case 8: return new AbiCicloInfinito();
-            case 9: return new AbiSegmentationFault();
-            default: return null;
-        }
+        return switch (id) {
+            case 0 -> new AbiErroSintaxe();
+            case 1 -> new AbiErroLogica();
+            case 2 -> new AbiException();
+            case 3 -> new AbiFileNotFoundException();
+            case 4 -> new AbiCrash();
+            case 5 -> new AbiCodigoDuplicado();
+            case 6 -> new AbiEfeitosSecundarios();
+            case 7 -> new AbiBlueScreenOfDeath();
+            case 8 -> new AbiCicloInfinito();
+            case 9 -> new AbiSegmentationFault();
+            default -> null;
+        };
     }
 
     private Ferramenta createFerramentaById(int id) {
-        switch (id) {
-            case 0: return new FerHeranca();
-            case 1: return new FerProgramacaoFuncional();
-            case 2: return new FerTestesUnitarios();
-            case 3: return new FerTratamentoExcepcoes();
-            case 4: return new FerIDE();
-            case 5: return new FerAjudaDoProfessor();
-            default: return null;
+        return switch (id) {
+            case 0 -> new FerHeranca();
+            case 1 -> new FerProgramacaoFuncional();
+            case 2 -> new FerTestesUnitarios();
+            case 3 -> new FerTratamentoExcepcoes();
+            case 4 -> new FerIDE();
+            case 5 -> new FerAjudaDoProfessor();
+            default -> null;
+        };
+    }
+
+    public boolean moveCurrentPlayer(int nrSpaces) {
+        if (nrSpaces < 1 || nrSpaces > 6 || players.isEmpty()) {
+            return false;
         }
+
+        Programmer current = players.get(currentPlayerIndex);
+
+        if (current.getFavoriteLanguages().length > 0) {
+            String first = current.getFavoriteLanguages()[0];
+            if ("Assembly".equals(first) && nrSpaces > 2) {
+                return false;
+            }
+            if ("C".equals(first) && nrSpaces > 3) {
+                return false;
+            }
+        }
+
+        int newPos = current.getPosition() + nrSpaces;
+        if (newPos > boardSize) {
+            int excess = newPos - boardSize;
+            newPos = boardSize - excess;
+        }
+
+        current.setPosition(newPos);
+        totalTurns++;
+        lastNrSpaces = nrSpaces;
+
+        if (newPos != boardSize) {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        } else {
+            current.setInGame(false);
+            current.setState("Derrotado");
+        }
+
+        reactToAbyssOrTool(); // ✅ Aplica efeitos imediatamente
+        return true;
+    }
+
+    public boolean gameIsOver() {
+        for (Programmer p : players) {
+            if (p.getPosition() == boardSize) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public ArrayList<String> getGameResults() {
+        ArrayList<String> result = new ArrayList<>();
+        result.add("THE GREAT PROGRAMMING JOURNEY");
+        result.add("");
+        result.add("NR. DE TURNOS");
+        result.add(String.valueOf(totalTurns));
+        result.add("");
+        result.add("VENCEDOR");
+
+        Programmer winner = null;
+        for (Programmer p : players) {
+            if (p.getPosition() == boardSize) {
+                winner = p;
+                break;
+            }
+        }
+        result.add(winner != null ? winner.getName() : "N/A");
+        result.add("");
+        result.add("RESTANTES");
+
+        ArrayList<Programmer> remaining = new ArrayList<>();
+        for (Programmer p : players) {
+            if (winner == null || p.getId() != winner.getId()) {
+                remaining.add(p);
+            }
+        }
+
+        remaining.sort((a, b) -> {
+            if (b.getPosition() != a.getPosition()) {
+                return Integer.compare(b.getPosition(), a.getPosition());
+            }
+            return a.getName().compareTo(b.getName());
+        });
+
+        for (Programmer p : remaining) {
+            result.add(p.getName() + " " + p.getPosition()); // ✅ Formato exato dos testes
+        }
+        return result;
+    }
+
+    public JPanel getAuthorsPanel() {
+        JPanel panel = new JPanel();
+        panel.setPreferredSize(new java.awt.Dimension(300, 300));
+        panel.add(new JLabel("Nome: Rodrigo Santos"));
+        panel.add(new JLabel("Número: a22410416"));
+        panel.add(new JLabel("Nome: Marwan Ghunim"));
+        panel.add(new JLabel("Número: a22406059"));
+        return panel;
     }
 
     public String getProgrammersInfo() {
@@ -221,6 +318,123 @@ public class GameManager {
             sb.append(info);
         }
         return sb.toString();
+    }
+
+    public ArrayList<Programmer> getPlayers() {
+        return players;
+    }
+
+    public String getProgrammerInfoAsStr(int id) {
+        for (Programmer p : players) {
+            if (p.getId() == id) {
+                String[] langs = p.getFavoriteLanguages().clone();
+                java.util.Arrays.sort(langs);
+                StringBuilder langStr = new StringBuilder();
+                for (int i = 0; i < langs.length; i++) {
+                    if (i > 0) {
+                        langStr.append("; ");
+                    }
+                    langStr.append(langs[i]);
+                }
+                String state = p.isInGame() ? "Em Jogo" : "Derrotado";
+                return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
+                        " | No tools | " + langStr.toString() + " | " + state;
+            }
+        }
+        return null;
+    }
+
+    public int getCurrentPlayerID() {
+        if (players.isEmpty()) {
+            return -1;
+        }
+        return players.get(currentPlayerIndex).getId();
+    }
+
+    public boolean isValidColor(String color) {
+        return "Purple".equals(color) || "Blue".equals(color) ||
+                "Green".equals(color) || "Brown".equals(color);
+    }
+
+    public String getImagePng(int nrSquare) {
+        if (nrSquare < 1 || nrSquare > boardSize || slots.isEmpty()) {
+            return "normal.png";
+        }
+        Slot slot = slots.get(nrSquare - 1);
+        String img = slot.getCurrentImageName();
+        return (img != null && !img.isEmpty()) ? img : "normal.png";
+    }
+
+    public String[] getProgrammerInfo(int id) {
+        for (Programmer p : players) {
+            if (p.getId() == id) {
+                String[] langs = p.getFavoriteLanguages();
+                if (langs == null) {
+                    langs = new String[0];
+                }
+                StringBuilder langStr = new StringBuilder();
+                for (int i = 0; i < langs.length; i++) {
+                    if (i > 0) {
+                        langStr.append(";");
+                    }
+                    langStr.append(langs[i]);
+                }
+                return new String[]{
+                        String.valueOf(p.getId()),
+                        p.getName(),
+                        langStr.toString(),
+                        p.getColor(),
+                        String.valueOf(p.getPosition())
+                };
+            }
+        }
+        return null;
+    }
+
+    public String[] getSlotInfo(int position) {
+        if (position < 1 || position > boardSize) {
+            return new String[]{"", "", ""};
+        }
+
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (Programmer p : players) {
+            if (p.getPosition() == position) {
+                ids.add(p.getId());
+            }
+        }
+        ids.sort(Integer::compareTo);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            sb.append(ids.get(i));
+            if (i < ids.size() - 1) {
+                sb.append(",");
+            }
+        }
+
+        String idStr = sb.toString();
+
+
+        String abismoStr = "";
+        String ferramentaStr = "";
+        Slot slot = slots.get(position - 1);
+        if (slot.hasEffect()) {
+            Effect e = slot.getEffect();
+            if ("abismo".equals(e.getType())) {
+                abismoStr = e.getTitle();
+            } else if ("ferramenta".equals(e.getType())) {
+                ferramentaStr = e.getTitle();
+            }
+        }
+
+        return new String[]{idStr, abismoStr, ferramentaStr};
+    }
+
+    public int getLastNrSpaces() {
+        return lastNrSpaces;
+    }
+
+    public HashMap<String, String> customizeBoard() {
+        return new HashMap<>();
     }
 
     public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
@@ -348,219 +562,5 @@ public class GameManager {
         } catch (IOException e) {
             return false;
         }
-    }
-
-    public ArrayList<Programmer> getPlayers() {
-        return players;
-    }
-
-    public boolean isValidColor(String color) {
-        return "Purple".equals(color) || "Blue".equals(color) ||
-                "Green".equals(color) || "Brown".equals(color);
-    }
-
-    public String getImagePng(int nrSquare) {
-        if (nrSquare < 1 || nrSquare > boardSize || slots.isEmpty()) {
-            return "normal.png";
-        }
-        Slot slot = slots.get(nrSquare - 1);
-        String img = slot.getCurrentImageName();
-        return (img != null && !img.isEmpty()) ? img : "normal.png";
-    }
-
-    public String[] getProgrammerInfo(int id) {
-        for (Programmer p : players) {
-            if (p.getId() == id) {
-                String[] langs = p.getFavoriteLanguages();
-                if (langs == null) {
-                    langs = new String[0];
-                }
-                StringBuilder langStr = new StringBuilder();
-                for (int i = 0; i < langs.length; i++) {
-                    if (i > 0) {
-                        langStr.append(";");
-                    }
-                    langStr.append(langs[i]);
-                }
-                return new String[]{
-                        String.valueOf(p.getId()),
-                        p.getName(),
-                        langStr.toString(),
-                        p.getColor(),
-                        String.valueOf(p.getPosition())
-                };
-            }
-        }
-        return null;
-    }
-
-    public String getProgrammerInfoAsStr(int id) {
-        for (Programmer p : players) {
-            if (p.getId() == id) {
-                String[] langs = p.getFavoriteLanguages().clone();
-                java.util.Arrays.sort(langs);
-                StringBuilder langStr = new StringBuilder();
-                for (int i = 0; i < langs.length; i++) {
-                    if (i > 0) {
-                        langStr.append("; ");
-                    }
-                    langStr.append(langs[i]);
-                }
-                String state = p.isInGame() ? "Em Jogo" : "Derrotado";
-                return p.getId() + " | " + p.getName() + " | " + p.getPosition() +
-                        " | No tools | " + langStr.toString() + " | " + state;
-            }
-        }
-        return null;
-    }
-
-    public String[] getSlotInfo(int position) {
-        if (position < 1 || position > boardSize) {
-            return new String[]{"", "", ""};
-        }
-
-        ArrayList<Integer> ids = new ArrayList<>();
-        for (Programmer p : players) {
-            if (p.getPosition() == position) {
-                ids.add(p.getId());
-            }
-        }
-        ids.sort(Integer::compareTo);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            sb.append(ids.get(i));
-            if (i < ids.size() - 1) {
-                sb.append(",");
-            }
-        }
-
-        String idStr = sb.toString();
-
-
-        String abismoStr = "";
-        String ferramentaStr = "";
-        Slot slot = slots.get(position - 1);
-        if (slot.hasEffect()) {
-            Effect e = slot.getEffect();
-            if ("abismo".equals(e.getType())) {
-                abismoStr = e.getTitle();
-            } else if ("ferramenta".equals(e.getType())) {
-                ferramentaStr = e.getTitle();
-            }
-        }
-
-        return new String[]{idStr, abismoStr, ferramentaStr};
-    }
-
-    public int getCurrentPlayerID() {
-        if (players.isEmpty()) {
-            return -1;
-        }
-        return players.get(currentPlayerIndex).getId();
-    }
-
-    public boolean moveCurrentPlayer(int nrSpaces) {
-        if (nrSpaces < 1 || nrSpaces > 6 || players.isEmpty()) {
-            return false;
-        }
-
-        Programmer current = players.get(currentPlayerIndex);
-
-        if (current.getFavoriteLanguages().length > 0) {
-            String first = current.getFavoriteLanguages()[0];
-            if ("Assembly".equals(first) && nrSpaces > 2) {
-                return false;
-            }
-            if ("C".equals(first) && nrSpaces > 3) {
-                return false;
-            }
-        }
-
-        int newPos = current.getPosition() + nrSpaces;
-        if (newPos > boardSize) {
-            int excess = newPos - boardSize;
-            newPos = boardSize - excess;
-        }
-
-        current.setPosition(newPos);
-        totalTurns++;
-        lastNrSpaces = nrSpaces;
-
-        if (newPos != boardSize) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        } else {
-            current.setInGame(false);
-            current.setState("Derrotado");
-        }
-
-        reactToAbyssOrTool(); // ✅ Aplica efeitos imediatamente
-        return true;
-    }
-
-    public boolean gameIsOver() {
-        for (Programmer p : players) {
-            if (p.getPosition() == boardSize) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public ArrayList<String> getGameResults() {
-        ArrayList<String> result = new ArrayList<>();
-        result.add("THE GREAT PROGRAMMING JOURNEY");
-        result.add("");
-        result.add("NR. DE TURNOS");
-        result.add(String.valueOf(totalTurns));
-        result.add("");
-        result.add("VENCEDOR");
-
-        Programmer winner = null;
-        for (Programmer p : players) {
-            if (p.getPosition() == boardSize) {
-                winner = p;
-                break;
-            }
-        }
-        result.add(winner != null ? winner.getName() : "N/A");
-        result.add("");
-        result.add("RESTANTES");
-
-        ArrayList<Programmer> remaining = new ArrayList<>();
-        for (Programmer p : players) {
-            if (winner == null || p.getId() != winner.getId()) {
-                remaining.add(p);
-            }
-        }
-
-        remaining.sort((a, b) -> {
-            if (b.getPosition() != a.getPosition()) {
-                return Integer.compare(b.getPosition(), a.getPosition());
-            }
-            return a.getName().compareTo(b.getName());
-        });
-
-        for (Programmer p : remaining) {
-            result.add(p.getName() + " " + p.getPosition()); // ✅ Formato exato dos testes
-        }
-        return result;
-    }
-
-    public JPanel getAuthorsPanel() {
-        JPanel panel = new JPanel();
-        panel.setPreferredSize(new java.awt.Dimension(300, 300));
-        panel.add(new JLabel("Nome: Rodrigo Santos"));
-        panel.add(new JLabel("Número: a22410416"));
-        panel.add(new JLabel("Nome: Marwan Ghunim"));
-        panel.add(new JLabel("Número: a22406059"));
-        return panel;
-    }
-
-    public HashMap<String, String> customizeBoard() {
-        return new HashMap<>();
-    }
-
-    public int getLastNrSpaces() {
-        return lastNrSpaces;
     }
 }
