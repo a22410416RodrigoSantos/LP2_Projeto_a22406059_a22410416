@@ -75,16 +75,15 @@ public class Programmer {
         this.state = state;
     }
 
-    public List<Ferramenta> getInventory() {
-        return inventory;
-    }
-
-    public List<Ferramenta> getFerramentas() {
-        return new ArrayList<>(inventory);
-    }
-
+    // 🔥 NÃO permite adicionar duplicados (mesmo ID)
     public void addFerramenta(Ferramenta ferramenta) {
         if (ferramenta != null) {
+            // Verifica se já tem uma ferramenta com o mesmo ‘ID’
+            for (Ferramenta f : inventory) {
+                if (f.getId() == ferramenta.getId()) {
+                    return; // Já tem → não adiciona
+                }
+            }
             inventory.add(ferramenta);
         }
     }
@@ -102,6 +101,17 @@ public class Programmer {
         return null;
     }
 
+    // 🔥 Retorna inventário ordenado por título (alfabeticamente)
+    public List<Ferramenta> getFerramentas() {
+        List<Ferramenta> sorted = new ArrayList<>(inventory);
+        sorted.sort((a, b) -> a.getTitle().compareTo(b.getTitle()));
+        return sorted;
+    }
+
+    public List<Ferramenta> getInventory() {
+        return new ArrayList<>(inventory); // retorna cópia não ordenada (se precisar)
+    }
+
     public List<Integer> getPositionHistory() {
         return new ArrayList<>(positionHistory);
     }
@@ -113,5 +123,4 @@ public class Programmer {
         }
         return positionHistory.get(index);
     }
-
 }

@@ -141,43 +141,75 @@ public class GameManager {
 
     public String reactToAbyssOrTool() {
         if (players.isEmpty() || currentPlayerIndex >= players.size()) {
-            return null;
+            return "";
         }
 
         Programmer current = players.get(currentPlayerIndex);
         if (!current.isInGame()) {
-            return null;
+            return "";
         }
 
         int pos = current.getPosition();
         if (pos < 1 || pos > boardSize) {
-            return null;
+            return "";
         }
 
         Slot slot = slots.get(pos - 1);
         if (!slot.hasEffect()) {
-            return null;
+            return ""; // casa normal
         }
 
         Effect effect = slot.getEffect();
+
+        // 🔥 CASO: ABISMO
         if ("abismo".equals(effect.getType())) {
             Abismo abismo = (Abismo) effect;
             Ferramenta tool = current.getFerramentaQueNeutraliza(abismo);
 
-            if (tool != null) {
-                current.removeFerramenta(tool); // 🔥 Remove imediatamente
-                return abismo.getTitle();
+            if (tool == null) {
+                // ❌ Não tem ferramenta → aplica efeito
+                abismo.apply(current, this);
+
+                if (!current.isInGame()) {
+                    return "O jogador morreu";
+                }
+
+                if ("Preso".equals(current.getState())) {
+                    return "O jogador PRESO";
+                }
+
+                return "O Abismo foi ativado" + abismo.getTitle();
             } else {
-                abismo.apply(current, this); // 🔥 Aplica efeito imediatamente
-                return abismo.getTitle();
+                // ✅ Tem ferramenta → consome e anula
+                current.removeFerramenta(tool);
+                return "jogador perdeu " + tool.getTitle();
             }
-        } else if ("ferramenta".equals(effect.getType())) {
-            Ferramenta ferramenta = (Ferramenta) effect;
-            ferramenta.apply(current, this); // 🔥 Adiciona imediatamente ao inventário
-            return ferramenta.getTitle();
         }
 
-        return null;
+        // 🔥 CASO: FERRAMENTA
+        if ("ferramenta".equals(effect.getType())) {
+            Ferramenta ferramenta = (Ferramenta) effect;
+
+            // Verifica se já tem a ferramenta (pelo ID)
+            boolean jaTem = false;
+            for (Ferramenta f : current.getInventory()) {
+                if (f.getId() == ferramenta.getId()) {
+                    jaTem = true;
+                    break;
+                }
+            }
+
+            if (!jaTem) {
+                // ✅ Ainda não tem → coleta
+                ferramenta.apply(current, this);
+                return "JOGADOR RECOLHEU FERRAMENTA " + ferramenta.getTitle();
+            } else {
+                // ❌ Já tem → ignora
+                return "CASA NORMAL COM FERRAMENTA";
+            }
+        }
+
+        return "";
     }
 
     private Abismo createAbismoById(int id) {
