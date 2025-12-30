@@ -178,7 +178,9 @@ public class GameManager {
         }
 
         return null;
-    }    private Abismo createAbismoById(int id) {
+    }
+
+    private Abismo createAbismoById(int id) {
         switch (id) {
             case 0: return new AbiErroSintaxe();
             case 1: return new AbiErroLogica();
