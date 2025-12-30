@@ -21,6 +21,6 @@ public class AbiCodigoDuplicado extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 10; // Herança
+        return ferramenta.getId() == 0; // Herança
     }
 }

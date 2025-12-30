@@ -15,6 +15,6 @@ public class AbiException extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 13; // Tratamento de Excepções
+        return ferramenta.getId() == 3; // Tratamento de Excepções
     }
 }

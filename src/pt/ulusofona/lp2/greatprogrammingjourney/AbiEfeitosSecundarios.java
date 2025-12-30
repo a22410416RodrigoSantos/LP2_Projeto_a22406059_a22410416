@@ -21,6 +21,6 @@ public class AbiEfeitosSecundarios extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 11; // Programação Funcional
+        return ferramenta.getId() == 1; // Programação Funcional
     }
 }

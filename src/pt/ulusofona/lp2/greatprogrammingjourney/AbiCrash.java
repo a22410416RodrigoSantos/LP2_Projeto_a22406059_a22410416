@@ -13,6 +13,7 @@ public class AbiCrash extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 14; // IDE
+
+        return ferramenta.getId() == 4; // IDE
     }
 }

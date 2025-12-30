@@ -14,6 +14,6 @@ public class AbiBlueScreenOfDeath extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 15; // Ajuda do Professor
+        return ferramenta.getId() == 5; // Ajuda do Professor
     }
 }

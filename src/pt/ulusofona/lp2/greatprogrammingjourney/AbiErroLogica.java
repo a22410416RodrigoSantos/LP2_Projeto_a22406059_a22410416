@@ -17,6 +17,7 @@ public class AbiErroLogica extends Abismo {
 
     @Override
     public boolean isNeutralizedBy(Ferramenta ferramenta) {
-        return ferramenta.getId() == 12; // Testes Unitários
+
+        return ferramenta.getId() == 2; // Testes Unitários
     }
 }
