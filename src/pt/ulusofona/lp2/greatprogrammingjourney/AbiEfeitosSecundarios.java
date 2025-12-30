@@ -5,7 +5,7 @@ import java.util.List;
 public class AbiEfeitosSecundarios extends Abismo {
 
     public AbiEfeitosSecundarios() {
-        super(6, "Efeitos Secundários", "side_effects.png");
+        super(6, "Efeitos Secundários", "secondary_effects.png");
     }
 
     @Override

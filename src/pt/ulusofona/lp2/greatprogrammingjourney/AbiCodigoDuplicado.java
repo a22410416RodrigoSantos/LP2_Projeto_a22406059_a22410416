@@ -5,7 +5,7 @@ import java.util.List;
 public class AbiCodigoDuplicado extends Abismo {
 
     public AbiCodigoDuplicado() {
-        super(5, "Código Duplicado", "duplicated_code.png");
+        super(5, "Código Duplicado", "duplicated-code.png");
     }
 
     @Override

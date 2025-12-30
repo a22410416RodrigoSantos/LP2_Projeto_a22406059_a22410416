@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class AbiErroLogica extends Abismo {
 
     public AbiErroLogica() {
-        super(1, "Erro de Lógica", "logic_error.png");
+        super(1, "Erro de Lógica", "logic.png");
     }
 
     @Override

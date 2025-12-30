@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class AbiCicloInfinito extends Abismo {
 
     public AbiCicloInfinito() {
-        super(8, "Ciclo Infinito", "infinite_loop.png");
+        super(8, "Ciclo Infinito", "infinite-loop.png");
     }
 
     @Override

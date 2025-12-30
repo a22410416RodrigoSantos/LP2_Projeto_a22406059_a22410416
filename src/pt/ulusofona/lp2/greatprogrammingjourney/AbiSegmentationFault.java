@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 public class AbiSegmentationFault extends Abismo {
 
     public AbiSegmentationFault() {
-        super(9, "Segmentation Fault", "seg_fault.png");
+        super(9, "Segmentation Fault", "core-dumped.png");
     }
 
     @Override
